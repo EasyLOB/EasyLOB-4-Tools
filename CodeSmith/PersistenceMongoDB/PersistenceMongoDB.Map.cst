@@ -1,0 +1,62 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Database" Description="Table" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%
+
+// Associations (FK) => Relationships FK
+// Collections (PK)  => Relationships PK
+
+if (SourceTable.PrimaryKey == null) {
+    throw new ApplicationException("SourceTable does not contain a primary key.");
+}
+
+string tableName = TableName(SourceTable.FullName);
+string className = ClassName(SourceTable.FullName, Culture);
+string objectName = ObjectName(SourceTable.FullName, Culture);
+%>
+using <%= Namespace.Replace(".Persistence", ".Data") %>;
+using EasyLOB.Persistence;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
+
+namespace <%= Namespace %>
+{
+    public static partial class <%= Application %>MongoDBMap
+    {
+        public static void <%= className %>Map()
+        {
+            if (!BsonClassMap.IsClassMapRegistered(typeof(<%= className %>)))
+            {
+                BsonClassMap.RegisterClassMap<<%= className %>>(map =>
+                {
+<%  if (IsIdentity(SourceTable.PrimaryKey.MemberColumns[0])) { %>
+                    map.MapIdProperty(x => x.<%= PropertyName(SourceTable.PrimaryKey.MemberColumns[0].Name) %>)
+                        .SetIdGenerator(MongoDBInt32IdGenerator.Instance)
+                        .SetSerializer(new StringSerializer(BsonType.String));
+
+<%  } %>
+<%  foreach (ColumnSchema column in SourceTable.Columns) {
+        bool columnIsPrimaryKey = column.IsPrimaryKeyMember;
+        bool columnIsIdentity = IsIdentity(SourceTable.PrimaryKey.MemberColumns[0]);
+        bool columnIsNullable = column.AllowDBNull;
+        bool isNullable = column.AllowDBNull;
+        //string protectedSet = column.IsForeignKeyMember ? "protected " : "";
+        string protectedSet = ""; %>
+                    map.MapProperty(x => x.<%= PropertyName(column.Name) %>);
+<%  } %>
+                });
+            }
+        }
+    }
+}

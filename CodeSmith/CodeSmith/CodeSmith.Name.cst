@@ -1,0 +1,62 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="Text" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<script runat="template">
+</script>
+<%
+string name;
+%>
+Name => Table Name : Class | Entity Name : Object (Instance of Class) Name : Class Label
+----------------------------------------------------------------------------------------------------
+<%  name = "Table"; %>
+<%= name %> => <%= TableName(name) %> : <%= ClassName(name, Culture) %> : <%= ObjectName(name, Culture) %> : <%= ClassLabel(name) %>
+<%  name = "TableName"; %>
+<%= name %> => <%= TableName(name) %> : <%= ClassName(name, Culture) %> : <%= ObjectName(name, Culture) %> : <%= ClassLabel(name) %>
+<%  name = "Schema.TableName"; %>
+<%= name %> => <%= TableName(name) %> : <%= ClassName(name, Culture) %> : <%= ObjectName(name, Culture) %> : <%= ClassLabel(name) %>
+<%  name = "actor"; %>
+<%= name %> => <%= TableName(name) %> : <%= ClassName(name, Culture) %> : <%= ObjectName(name, Culture) %> : <%= ClassLabel(name) %>
+<%  name = "film_actor"; %>
+<%= name %> => <%= TableName(name) %> : <%= ClassName(name, Culture) %> : <%= ObjectName(name, Culture) %> : <%= ClassLabel(name) %>
+<%  name = "Sys_Log"; %>
+<%= name %> => <%= TableName(name) %> : <%= ClassName(name, Culture) %> : <%= ObjectName(name, Culture) %> : <%= ClassLabel(name) %>
+<%  name = "Sys_RoleInTask"; %>
+<%= name %> => <%= TableName(name) %> : <%= ClassName(name, Culture) %> : <%= ObjectName(name, Culture) %> : <%= ClassLabel(name) %>
+<%  name = "CEP"; %>
+<%= name %> => <%= TableName(name) %> : <%= ClassName(name, Culture) %> : <%= ObjectName(name, Culture) %> : <%= ClassLabel(name) %>
+<%  name = "CEPTable"; %>
+<%= name %> => <%= TableName(name) %> : <%= ClassName(name, Culture) %> : <%= ObjectName(name, Culture) %> : <%= ClassLabel(name) %>
+<%  name = "TableCEP"; %>
+<%= name %> => <%= TableName(name) %> : <%= ClassName(name, Culture) %> : <%= ObjectName(name, Culture) %> : <%= ClassLabel(name) %>
+
+Name => Column Name : Property Name : Local Name : Property Label
+----------------------------------------------------------------------------------------------------
+<%  name = "Column"; %>
+<%= name %> => <%= ColumnName(name) %> : <%= PropertyName(name) %> : <%= LocalName(name) %> : <%= PropertyLabel(name) %>
+<%  name = "ColumnName"; %>
+<%= name %> => <%= ColumnName(name) %> : <%= PropertyName(name) %> : <%= LocalName(name) %> : <%= PropertyLabel(name) %>
+<%  name = "ColumnID"; %>
+<%= name %> => <%= ColumnName(name) %> : <%= PropertyName(name) %> : <%= LocalName(name) %> : <%= PropertyLabel(name) %>
+<%  name = "ColumnIDName"; %>
+<%= name %> => <%= ColumnName(name) %> : <%= PropertyName(name) %> : <%= LocalName(name) %> : <%= PropertyLabel(name) %>
+<%  name = "Column_ID"; %>
+<%= name %> => <%= ColumnName(name) %> : <%= PropertyName(name) %> : <%= LocalName(name) %> : <%= PropertyLabel(name) %>
+<%  name = "Column_ID_Name"; %>
+<%= name %> => <%= ColumnName(name) %> : <%= PropertyName(name) %> : <%= LocalName(name) %> : <%= PropertyLabel(name) %>
+<%  name = "column_id"; %>
+<%= name %> => <%= ColumnName(name) %> : <%= PropertyName(name) %> : <%= LocalName(name) %> : <%= PropertyLabel(name) %>
+<%  name = "column_id_name"; %>
+<%= name %> => <%= ColumnName(name) %> : <%= PropertyName(name) %> : <%= LocalName(name) %> : <%= PropertyLabel(name) %>
+<%  name = "Sys_Date_Time"; %>
+<%= name %> => <%= ColumnName(name) %> : <%= PropertyName(name) %> : <%= LocalName(name) %> : <%= PropertyLabel(name) %>
+<%  name = "CEP"; %>
+<%= name %> => <%= ColumnName(name) %> : <%= PropertyName(name) %> : <%= LocalName(name) %> : <%= PropertyLabel(name) %>
+<%  name = "CEPColumn"; %>
+<%= name %> => <%= ColumnName(name) %> : <%= PropertyName(name) %> : <%= LocalName(name) %> : <%= PropertyLabel(name) %>
+<%  name = "ColumnCEP"; %>
+<%= name %> => <%= ColumnName(name) %> : <%= PropertyName(name) %> : <%= LocalName(name) %> : <%= PropertyLabel(name) %>

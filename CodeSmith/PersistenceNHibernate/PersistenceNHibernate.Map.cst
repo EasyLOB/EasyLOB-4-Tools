@@ -1,0 +1,165 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Database" Description="Table" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="System.Collections" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%
+if (SourceTable.PrimaryKey == null) {
+    throw new ApplicationException("SourceTable does not contain a primary key.");
+}
+
+string tableName = TableName(SourceTable.FullName);
+string className = ClassName(SourceTable.FullName, Culture);
+string objectName = ObjectName(SourceTable.FullName, Culture);
+
+// Associations
+
+Dictionary<string, int> associations123 = new Dictionary<string, int>();
+foreach (TableKeySchema fkTable in SourceTable.ForeignKeys) {
+    string pkClassName = ClassName(fkTable.PrimaryKeyTable.FullName, Culture);
+
+    Dictionary123(associations123, pkClassName);
+}
+
+// Collections
+
+Dictionary<string, int> collections123 = new Dictionary<string, int>();
+foreach (TableKeySchema primaryKey in SourceTable.PrimaryKeys) {
+    string pkClassName = ClassName(primaryKey.ForeignKeyTable.Name, Culture);
+
+    Dictionary123(collections123, pkClassName);
+}
+%>
+using <%= Namespace.Replace(".Persistence", ".Data") %>;
+using FluentNHibernate.Mapping;
+
+namespace <%= Namespace %>
+{
+    public class <%= className %>Map : ClassMap<<%= className %>>
+    {
+        public <%= className %>Map()
+        {
+            #region Class
+
+            Table("<%= tableName %>");
+
+<%  if (SourceTable.PrimaryKey.MemberColumns.Count == 1) {
+        ColumnSchema column = SourceTable.PrimaryKey.MemberColumns[0];
+        bool propertyIsIdentity = IsIdentity(column); %>
+            Id(x => x.<%= PropertyName(column.Name) %>)
+                .Column("<%= column.Name %>")
+                .CustomSqlType("<%= GetSqlType(column) %>")<%
+        if (propertyIsIdentity) { %>
+                .GeneratedBy.Identity()<%
+        } else { %>
+                .GeneratedBy.Assigned()<%
+        }
+        if ((IsString(column.DataType) && !IsNText(column) && !IsText(column)) || IsImage(column)) {
+            string maxLength = column.Size.ToString();
+            if (column.Size == -1) {
+                maxLength = 1024.ToString();
+            } else if (IsImage(column)) {
+                maxLength = 8192.ToString();
+            } %>
+                .Length(<%= maxLength %>)<%
+        } %>
+                .Not.Nullable();
+<%  } else { %>
+            CompositeId()
+<%      int index = 1;
+        foreach (ColumnSchema column in SourceTable.PrimaryKey.MemberColumns) {
+            string dotComma = index++ == SourceTable.PrimaryKey.MemberColumns.Count ? ";" : ""; %>
+                .KeyProperty(x => x.<%= PropertyName(column.Name) %>, "<%= column.Name %>")<%= dotComma %>
+<%      }
+    } %>
+
+            Not.LazyLoad(); // GetById() EntityProxy => Entity
+
+            #endregion Class
+
+            #region Properties
+<%  int order = 1;
+    foreach (ColumnSchema column in SourceTable.NonPrimaryKeyColumns) {
+        bool propertyIsNullable = column.AllowDBNull;
+        bool isNullable = column.AllowDBNull; %>
+
+            Map(x => x.<%= PropertyName(column.Name) %>)
+                .Column("<%= column.Name %>")
+                .CustomSqlType("<%= GetSqlType(column) %>")<%
+        if ((IsString(column.DataType) && !IsNText(column) && !IsText(column)) || IsImage(column)) {
+            string maxLength = column.Size.ToString();
+            if (column.Size == -1) {
+                maxLength = 1024.ToString();
+            } else if (IsImage(column)) {
+                maxLength = 8192.ToString();
+            } %>
+                .Length(<%= maxLength %>)<%
+        }
+        if(!isNullable) { %>
+                .Not.Nullable()<%
+        } %>;
+<%  } %>
+
+            #endregion Properties
+<%  if (SourceTable.ForeignKeys.Count > 0) { %>
+
+            #region Associations (FK)
+<%      Dictionary1(associations123);
+        foreach (TableKeySchema fkTable in SourceTable.ForeignKeys) {
+            string fkClassName = ClassName(fkTable.ForeignKeyTable.FullName, Culture);
+            ColumnSchema fkColumn = fkTable.ForeignKeyMemberColumns[0];
+            string fkPropertyName = PropertyName(fkColumn.Name);
+
+            string pkClassName = ClassName(fkTable.PrimaryKeyTable.FullName, Culture);
+            ColumnSchema pkColumn = fkTable.PrimaryKeyMemberColumns[0];
+            string pkPropertyName = PropertyName(pkColumn.Name);
+            pkPropertyName = pkPropertyName == className ? pkPropertyName + fkPropertyName : pkPropertyName;
+
+            bool isNullable = fkColumn.AllowDBNull;
+            string pkClassName2 = pkClassName == className ? pkClassName + "X" : pkClassName;
+
+            string x = "";
+            if (associations123.ContainsKey(pkClassName)) {
+                x = (++associations123[pkClassName]).ToString();
+            }
+
+            foreach (ColumnSchema column in fkTable.ForeignKeyMemberColumns) { %>
+
+            References(x => x.<%= pkClassName2 %><%= x %>)
+                .Column("<%= fkColumn.Name %>");
+<%          }
+        } %>
+
+            #endregion Associations (FK)
+<%  }
+    if (SourceTable.PrimaryKeys.Count > 0) { %>
+
+            #region Collections (PK)
+<%      Dictionary1(collections123);
+        foreach (TableKeySchema primaryKey in SourceTable.PrimaryKeys) {
+            string pkClassName = ClassName(primaryKey.ForeignKeyTable.Name, Culture);
+
+            string x = "";
+            if (collections123.ContainsKey(pkClassName)) {
+                x = (++collections123[pkClassName]).ToString();
+            } %>
+
+            HasMany(x => x.<%= Plural(pkClassName, Culture) %><%= x %>)
+                .KeyColumn("<%= PropertyName(primaryKey.ForeignKeyMemberColumns[0].Name) %>");
+<%      } %>
+
+            #endregion Collections (PK)
+<%  } %>
+        }
+    }
+}

@@ -1,0 +1,98 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Database" Description="Table" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="System.Collections" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%
+if (SourceTable.PrimaryKey == null) {
+    throw new ApplicationException("SourceTable does not contain a primary key.");
+}
+
+string tableName = TableName(SourceTable.FullName);
+string className = ClassName(SourceTable.FullName, Culture);
+string objectName = ObjectName(SourceTable.FullName, Culture);
+
+// !?! Master-Detail Views using relationships with more then 1 property are RARE, so I will use just 1 property !?!
+ColumnSchema keyColumn = SourceTable.PrimaryKey.MemberColumns[0];
+string keyProperty = PropertyName(keyColumn.Name);
+
+// Associations
+
+Dictionary<string, int> associations123 = new Dictionary<string, int>();
+foreach (TableKeySchema fkTable in SourceTable.ForeignKeys) {
+    string pkClassName = ClassName(fkTable.PrimaryKeyTable.FullName, Culture);
+
+    Dictionary123(associations123, pkClassName);
+}
+
+// Collections
+
+Dictionary<string, int> collections123 = new Dictionary<string, int>();
+foreach (TableKeySchema primaryKey in SourceTable.PrimaryKeys) {
+    string pkClassName = ClassName(primaryKey.ForeignKeyTable.Name, Culture);
+
+    Dictionary123(collections123, pkClassName);
+}
+%>
+<div class="container-fluid">
+    <div class="row">
+<%  Dictionary1(associations123);
+    foreach (ColumnSchema column in SourceTable.Columns) {
+        string propertyName = PropertyName(column.Name);
+        string cssClassLabel = column.AllowDBNull ? "CssClassLabel" : "CssClassLabelRequired";
+
+        if (column.IsForeignKeyMember) {
+            string fkClassName = ClassName(FKTableName(SourceTable, column), Culture);
+
+            //string fkClassName2 = fkClassName;
+            //string fkClassName2 = fkClassName == className ? fkClassName + fkPropertyName : fkClassName;
+            string fkClassName2 = fkClassName == className ? fkClassName + fkClassName : fkClassName;
+
+            string x = "";
+            if (associations123.ContainsKey(fkClassName)) {
+                x = (++associations123[fkClassName]).ToString();
+            } %>
+        <div class="@profile.EditCSSFor("<%= fkClassName2 %>LookupText")">
+            <label class="@profile.EditCSSLabelFor("<%= propertyName %>")">@<%= className %>Resources.Property<%= propertyName %></label>
+            <input id="<%= propertyName %>" class="@profile.EditCSSEditorFor("<%= propertyName %>")"
+                   data-bind="value: <%= propertyName %>" />
+            @{
+                Html.RenderAction("Lookup", "<%= fkClassName %>", new
+                {
+                    Text = <%= ObjectName(fkClassName2, Culture) %><%= x %>Text,
+                    ValueId = "<%= propertyName %>",
+                    Required = profile.IsRequiredView("<%= propertyName %>")
+                });
+            }
+        </div>
+<%      } else if (IsInteger(column.DataType)) { %>
+        <div class="@profile.EditCSSFor("<%= propertyName %>")">
+            <label class="@profile.EditCSSLabelFor("<%= propertyName %>")">@<%= className %>Resources.Property<%= propertyName %></label>
+            <input id="<%= propertyName %>" class="@profile.EditCSSEditorFor("<%= propertyName %>")"
+                   data-bind="value: Globalize.format(<%= propertyName %>(), 'n0')" />
+        </div>
+<%      } else if (IsDecimal(column.DataType) || IsFloat(column.DataType)) { %>
+        <div class="@profile.EditCSSFor("<%= propertyName %>")">
+            <label class="@profile.EditCSSLabelFor("<%= propertyName %>")">@<%= className %>Resources.Property<%= propertyName %></label>
+            <input id="<%= propertyName %>" class="@profile.EditCSSEditorFor("<%= propertyName %>")"
+                   data-bind="value: Globalize.format(<%= propertyName %>(), 'n2')" />
+        </div>
+<%      } else { %>
+        <div class="@profile.EditCSSFor("<%= propertyName %>")">
+            <label class="@profile.EditCSSLabelFor("<%= propertyName %>")">@<%= className %>Resources.Property<%= propertyName %></label>
+            <input id="<%= propertyName %>" class="@profile.EditCSSEditorFor("<%= propertyName %>")"
+                   data-bind="value: <%= propertyName %>" />
+        </div>
+<%      }
+    } %>
+    </div>
+</div>

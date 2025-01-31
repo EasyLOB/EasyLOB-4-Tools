@@ -1,0 +1,26 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="Text" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="SourceColumn" Type="SchemaExplorer.ColumnSchema" Category="Database" Description="Column" Optional="false" %>
+<%@ Property Name="SourceColumns" Type="SchemaExplorer.ColumnSchemaCollection" Category="Database" Description="Columns" Optional="false" %>
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Database" Description="Table" Optional="false" %>
+<%@ Property Name="SourceTables" Type="SchemaExplorer.TableSchemaCollection" Category="Database" Description="Tables" Optional="false" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+SourceColumn
+    <%= SourceColumn.Name %>
+
+SourceColumns
+<%  foreach (ColumnSchema column in SourceColumns) { %>
+    <%= column.Name %>
+<%   } %>
+
+SourceTable
+    <%= SourceTable.Name %>
+
+SourceTables
+<%  foreach (TableSchema table in SourceTables) { %>
+    <%= table.Name %> <%= table.FullName %>
+<%  } %>

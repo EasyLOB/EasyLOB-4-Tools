@@ -1,0 +1,84 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="Text" Src="CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Archetype" Type="XCodeSmith.Archetypes" Category="Context" Description="Controllers Archetype" %>
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+<%@ Property Name="Output" Type="String" Category="Context" Description="Output Directory" %>
+<%@ Property Name="Syncfusion" Type="XCodeSmith.Syncfusions" Category="Context" Description="Syncfusion Components" %>
+
+<%@ Property Name="SourceTables" Type="SchemaExplorer.TableSchemaCollection" Category="Database" Description="Tables" %>
+
+<%@ Property Name="DoPresentationModelCollection" Type="Boolean" Default="False" Category="To-Do" Description="Generate Presentation :: Collection Models ?" %>
+<%@ Property Name="DoPresentationModelItem" Type="Boolean" Default="False" Category="To-Do" Description="Generate Presentation :: Item Models ?" %>
+<%@ Property Name="DoPresentationModelView" Type="Boolean" Default="False" Category="To-Do" Description="Generate Presentation :: View Models ?" %>
+<%@ Property Name="DoPresentationModelViewProfile" Type="Boolean" Default="False" Category="To-Do" Description="Generate Presentation :: View Model Profiles ?" %>
+<%@ Property Name="DoPresentationMvcController" Type="Boolean" Default="False" Category="To-Do" Description="Generate Presentation :: MVC Controllers ?" %>
+<%@ Property Name="DoPresentationMvcMenu" Type="Boolean" Default="False" Category="To-Do" Description="Generate Presentation :: MVC Menu ?" %>
+<%@ Property Name="DoPresentationMvcView" Type="Boolean" Default="False" Category="To-Do" Description="Generate Presentation :: MVC Views ?" %>
+<%@ Property Name="DoPresentationMvcViewCollection" Type="Boolean" Default="False" Category="To-Do" Description="Generate Presentation :: MVC Partial View Collection ?" %>
+<%@ Property Name="DoPresentationMvcViewItem" Type="Boolean" Default="False" Category="To-Do" Description="Generate Presentation :: MVC Partial View Item ?" %>
+<%@ Property Name="DoPresentationMvcViewLookup" Type="Boolean" Default="False" Category="To-Do" Description="Generate Presentation :: MVC Partial View Lookup ?" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%
+if (DoPresentationModelCollection)
+{
+    GeneratePresentationCollectionModel(SourceTables, Application, Namespace, Output, Culture);
+}
+
+if (DoPresentationModelItem)
+{
+    GeneratePresentationItemModel(SourceTables, Application, Namespace, Output, Culture);
+}
+
+if (DoPresentationModelView)
+{
+    GeneratePresentationViewModel(SourceTables, Application, Namespace, Output, Culture, Archetype);
+}
+
+if (DoPresentationModelViewProfile)
+{
+    GeneratePresentationViewModelProfile(SourceTables, Application, Namespace, Output, Culture);
+}
+
+if (DoPresentationMvcController)
+{
+    GeneratePresentationMvcController(SourceTables, Application, Namespace, Output, Culture, Archetype, Syncfusion);
+}
+
+if (DoPresentationMvcMenu)
+{
+    GeneratePresentationMvcMenu(SourceTables, Application, Namespace, Output, Culture);
+}
+
+if (DoPresentationMvcView)
+{
+    GeneratePresentationMvcView(SourceTables, Application, Namespace, Output, Culture, Syncfusion);
+}
+
+if (DoPresentationMvcViewCollection)
+{
+    GeneratePresentationMvcPartialView(SourceTables, Application, Namespace, Output, Culture, Syncfusion,
+        "Presentation.MVC.PartialView._Collection.cst",
+        "Collection.cshtml");
+}
+
+if (DoPresentationMvcViewItem)
+{
+    GeneratePresentationMvcPartialView(SourceTables, Application, Namespace, Output, Culture, Syncfusion,
+        "Presentation.MVC.PartialView._Item.cst",
+        "Item.cshtml");
+}
+
+if (DoPresentationMvcViewLookup)
+{
+    GeneratePresentationMvcPartialView(SourceTables, Application, Namespace, Output, Culture, Syncfusion,
+        "Presentation.MVC.PartialView._Lookup.cst",
+        "Lookup.cshtml");
+}
+%>

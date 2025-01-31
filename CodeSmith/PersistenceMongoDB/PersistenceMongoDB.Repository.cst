@@ -1,0 +1,67 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Database" Description="Table" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%
+
+// Associations (FK) => Relationships FK
+// Collections (PK)  => Relationships PK
+
+if (SourceTable.PrimaryKey == null) {
+    throw new ApplicationException("SourceTable does not contain a primary key.");
+}
+
+string tableName = TableName(SourceTable.FullName);
+string className = ClassName(SourceTable.FullName, Culture);
+string objectName = ObjectName(SourceTable.FullName, Culture);
+
+string comma = "";
+int commaIndex = 0;
+%>
+using <%= Namespace.Replace(".Persistence", ".Data") %>;
+using EasyLOB;
+using EasyLOB.Data;
+using EasyLOB.Persistence;
+
+namespace <%= Namespace %>
+{
+    public class <%= Application %><%= className %>RepositoryMongoDB : <%= Application %>GenericRepositoryMongoDB<<%= className %>>
+    {
+        #region Methods
+
+        public <%= Application %><%= className %>RepositoryMongoDB(IUnitOfWork unitOfWork)
+            : base(unitOfWork)
+        {
+        }
+
+        public override void Join(<%= className %> <%= objectName %>)
+        {
+            if (<%= objectName %> != null)
+            {
+<%  foreach (TableKeySchema fkTable in SourceTable.ForeignKeys) {
+        string fkClassName = ClassName(fkTable.ForeignKeyTable.FullName, Culture);
+        ColumnSchema fkColumn = fkTable.ForeignKeyMemberColumns[0];
+        string fkPropertyName = PropertyName(fkColumn.Name);
+
+        string pkClassName = ClassName(fkTable.PrimaryKeyTable.FullName, Culture);
+        ColumnSchema pkColumn = fkTable.PrimaryKeyMemberColumns[0];
+        string pkPropertyName = PropertyName(pkColumn.Name);
+
+        string pkClassName2 = pkClassName == fkClassName ? pkClassName + "X" : pkClassName; %>
+                <%= objectName %>.<%= pkClassName2 %> = UnitOfWork.GetRepository<<%= pkClassName %>>().GetById(<%= objectName %>.<%= fkPropertyName %>);
+<%  } %>
+            }
+        }
+
+        #endregion Methods
+    }
+}

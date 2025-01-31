@@ -1,0 +1,87 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Database" Description="Table" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%
+if (SourceTable.PrimaryKey == null) {
+    throw new ApplicationException("SourceTable does not contain a primary key.");
+}
+
+string tableName = TableName(SourceTable.FullName);
+string className = ClassName(SourceTable.FullName, Culture);
+string objectName = ObjectName(SourceTable.FullName, Culture);
+
+// Associations
+
+Dictionary<string, int> associations123 = new Dictionary<string, int>();
+foreach (TableKeySchema fkTable in SourceTable.ForeignKeys) {
+    string pkClassName = ClassName(fkTable.PrimaryKeyTable.FullName, Culture);
+
+    Dictionary123(associations123, pkClassName);
+}
+Dictionary1(associations123);
+
+// Collections
+
+Dictionary<string, int> collections123 = new Dictionary<string, int>();
+foreach (TableKeySchema primaryKey in SourceTable.PrimaryKeys) {
+    string pkClassName = ClassName(primaryKey.ForeignKeyTable.Name, Culture);
+
+    Dictionary123(collections123, pkClassName);
+}
+Dictionary1(collections123);
+%>
+using EasyLOB;
+
+namespace <%= Application %>.Data
+{
+    public partial class <%= className %>ViewModel
+    {
+        #region Methods
+
+        public static void OnSetupProfile(IZProfile profile)
+        {
+<%  foreach (TableKeySchema primaryKey in SourceTable.PrimaryKeys) {
+        string pkClassName = ClassName(primaryKey.ForeignKeyTable.Name, Culture);
+
+        string x = "";
+        if (collections123.ContainsKey(pkClassName)) {
+            x = (++collections123[pkClassName]).ToString();
+        } %>
+            //profile.Collections["<%= Plural(pkClassName, Culture) %><%= x %>"] = false;
+<%  }
+    if (SourceTable.PrimaryKeys.Count > 0 && SourceTable.ForeignKeys.Count > 0) { %>
+
+<%  }
+    foreach (TableKeySchema fkTable in SourceTable.ForeignKeys) {
+        string fkClassName = ClassName(fkTable.ForeignKeyTable.FullName, Culture);
+        ColumnSchema fkColumn = fkTable.ForeignKeyMemberColumns[0];
+        string fkPropertyName = PropertyName(fkColumn.Name);
+
+        string pkClassName = ClassName(fkTable.PrimaryKeyTable.FullName, Culture);
+        ColumnSchema pkColumn = fkTable.PrimaryKeyMemberColumns[0];
+        string pkPropertyName = PropertyName(pkColumn.Name);
+
+        string pkClassName2 = pkClassName == className ? pkClassName + "X" : pkClassName;
+
+        string x = "";
+        if (associations123.ContainsKey(pkClassName)) {
+            x = (++associations123[pkClassName]).ToString();
+        } %>
+            //profile.SetProfileProperty("<%= pkClassName2 %><%= x %>LookupText", isGridVisible: true);
+<%      } %>
+        }
+
+        #endregion Methods
+    }
+}

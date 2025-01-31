@@ -1,0 +1,42 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="Text" Src="CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+<%@ Property Name="Output" Type="String" Category="Context" Description="Output Directory" %>
+
+<%@ Property Name="SourceTables" Type="SchemaExplorer.TableSchemaCollection" Category="Database" Description="Tables" %>
+
+<%@ Property Name="DoPersistenceNHibernateMap" Type="Boolean" Default="False" Category="To-Do" Description="Generate Persistence :: NHibernate Configurations ?" %>
+<%@ Property Name="DoPersistenceNHibernateFactory" Type="Boolean" Default="False" Category="To-Do" Description="Generate Persistence :: NH Factory ?" %>
+<%--
+<%@ Property Name="DoPersistenceNHibernateGenericRepository" Type="Boolean" Default="False" Category="To-Do" Description="Generate Persistence :: NH Generic Repository ?" %>
+<%@ Property Name="DoPersistenceNHibernateUnitOfWork" Type="Boolean" Default="False" Category="To-Do" Description="Generate Persistence :: NH Unit of Work ?" %>
+--%>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%
+if (DoPersistenceNHibernateMap)
+{
+    GeneratePersistenceNHibernateMap(SourceTables, Application, Namespace, Output, Culture);
+}
+
+if (DoPersistenceNHibernateFactory)
+{
+    GeneratePersistenceNHibernateFactory(SourceTables, Application, Namespace, Output, Culture);
+}
+/*
+if (DoPersistenceNHibernateGenericRepository)
+{
+    GeneratePersistenceNHibernateGenericRepository(SourceTables, Application, Namespace, Output, Culture);
+}
+
+if (DoPersistenceNHibernateUnitOfWork)
+{
+    GeneratePersistenceNHibernateUnitOfWork(SourceTables, Application, Namespace, Output, Culture);
+}
+*/
+%>

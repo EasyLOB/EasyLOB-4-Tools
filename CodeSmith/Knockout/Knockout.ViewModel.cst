@@ -1,0 +1,83 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Database" Description="Table" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="System.Collections" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%
+if (SourceTable.PrimaryKey == null) {
+    throw new ApplicationException("SourceTable does not contain a primary key.");
+}
+
+string tableName = TableName(SourceTable.FullName);
+string className = ClassName(SourceTable.FullName, Culture);
+string objectName = ObjectName(SourceTable.FullName, Culture);
+%>
+// Knockout - <%= className %>
+
+class <%= className %>ViewModel {
+    constructor(data) {
+        var self = this;
+
+        //// Properties
+
+<%  foreach (ColumnSchema column in SourceTable.Columns) { %>
+        this.<%= PropertyName(column.Name) %> = ko.observable();
+<%  }
+    if (SourceTable.ForeignKeys.Count > 0) { %>
+
+<%      foreach (TableKeySchema fkTable in SourceTable.ForeignKeys) {
+            string fkClassName = ClassName(fkTable.ForeignKeyTable.FullName, Culture);
+            ColumnSchema fkColumn = fkTable.ForeignKeyMemberColumns[0];
+            string fkPropertyName = PropertyName(fkColumn.Name);
+
+            string pkClassName = ClassName(fkTable.PrimaryKeyTable.FullName, Culture);
+            ColumnSchema pkColumn = fkTable.PrimaryKeyMemberColumns[0];
+            string pkPropertyName = PropertyName(pkColumn.Name);
+
+            string pkClassName2 = pkClassName == fkClassName ? pkClassName + "X" : pkClassName; %>
+        this.<%= pkClassName2 %>LookupText = ko.observable();
+<%      }
+    } %>
+
+        //// Methods
+
+        //// Constructor
+
+        if (data) {
+            ko.mapping.fromJS(data, null, this);
+            //ko.mapping.fromJS(data, KnockoutMappingFrom<%= className %>, this);
+<%  int dates = 0;
+    foreach (ColumnSchema column in SourceTable.Columns) {
+        if (IsDate(column.DataType) || IsDateTime(column.DataType) || IsTime(column.DataType)) {
+            dates ++;
+        }
+    }
+    if (dates > 0) { %>
+
+            // ISO Date
+<%      foreach (ColumnSchema column in SourceTable.Columns) {
+            if (IsDate(column.DataType) || IsDateTime(column.DataType) || IsTime(column.DataType)) { %>
+            this.<%= PropertyName(column.Name) %>(zISODate(this.<%= PropertyName(column.Name) %>()));
+<%          }
+        }
+    } %>
+        }
+    }
+}
+
+var KnockoutMappingFrom<%= className %> = {
+    //'ignore': [
+    //    // computed()
+    //]
+};
+
+// Knockout - <%= className %>

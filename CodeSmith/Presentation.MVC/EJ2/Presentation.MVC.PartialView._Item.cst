@@ -1,0 +1,331 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Database" Description="Table" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="System.Collections" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%
+if (SourceTable.PrimaryKey == null) {
+    throw new ApplicationException("SourceTable does not contain a primary key.");
+}
+
+string tableName = TableName(SourceTable.FullName);
+string className = ClassName(SourceTable.FullName, Culture);
+string objectName = ObjectName(SourceTable.FullName, Culture);
+
+// !?! Master-Detail Views using relationships with more then 1 property are RARE, so I will use just 1 property !?!
+ColumnSchema keyColumn = SourceTable.PrimaryKey.MemberColumns[0];
+string keyProperty = PropertyName(keyColumn.Name);
+
+// Associations
+
+Dictionary<string, int> associations123 = new Dictionary<string, int>();
+foreach (TableKeySchema fkTable in SourceTable.ForeignKeys) {
+    string pkClassName = ClassName(fkTable.PrimaryKeyTable.FullName, Culture);
+
+    Dictionary123(associations123, pkClassName);
+}
+
+// Collections
+
+Dictionary<string, int> collections123 = new Dictionary<string, int>();
+foreach (TableKeySchema primaryKey in SourceTable.PrimaryKeys) {
+    string pkClassName = ClassName(primaryKey.ForeignKeyTable.Name, Culture);
+
+    Dictionary123(collections123, pkClassName);
+}
+%>
+@model <%= className %>ItemModel
+
+@{
+    string CSHTML = "_<%= className %>Item.cshtml";
+
+    IZProfile profile = DataHelper.GetProfile(typeof(<%= className %>));
+    // Associations (FK)
+<%  Dictionary1(associations123);
+    foreach (TableKeySchema fkTable in SourceTable.ForeignKeys) {
+        string pkClassName = ClassName(fkTable.PrimaryKeyTable.FullName, Culture);
+
+        string pkClassName2 = pkClassName == className ? pkClassName + "X" : pkClassName;
+
+        string x = "";
+        if (associations123.ContainsKey(pkClassName)) {
+            x = (++associations123[pkClassName]).ToString();
+        } %>
+    string <%= ObjectName(pkClassName2, Culture) %><%= x %>Text = Model.<%= className %> == null ? "" : (Model.<%= className %>.<%= pkClassName2 %><%= x %>LookupText ?? "");
+<%  }
+
+    int image = 0;
+    foreach (ColumnSchema column in SourceTable.Columns) {
+        if (IsImage(column)) {
+            string propertyName = PropertyName(column.Name);
+            if (image++ > 0) { %>
+
+<%          } %>
+    string <%= objectName %>_<%= propertyName %>_Base64 = Convert.ToBase64String(new byte[] {});
+    if (Model.<%= className %> != null && Model.<%= className %>.<%= propertyName %> != null)
+    {
+        <%= objectName %>_<%= propertyName %>_Base64 = Convert.ToBase64String(Model.<%= className %>.<%= propertyName %>);
+    }
+    string <%= objectName %>_<%= propertyName %>_Source = string.Format("data:image/jpg;base64,{0}", <%= objectName %>_<%= propertyName %>_Base64);
+<%      }
+    } %>
+}
+
+<div id="Item_<%= className %>">
+    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+
+    @Html.HiddenFor(model => model.ControllerAction, new { id = "<%= className %>_Item_ControllerAction" })
+    @Html.HiddenFor(model => model.MasterEntity, new { id = "<%= className %>_Item_MasterEntity" })
+    @Html.HiddenFor(model => model.MasterKey, new { id = "<%= className %>_Item_MasterKey" })
+    @Html.ZHiddenFor(model => model.IsReadOnly, "<%= className %>_Item_IsReadOnly")
+    @Html.ZHiddenFor(model => model.IsSave, "<%= className %>_Item_IsSave")
+
+    <div id="Tab_<%= className %>" class="@AppDefaults.CSSClassTab">
+        <div class="e-tab-header">
+            <div>@<%= className %>Resources.EntitySingular</div>
+<%  Dictionary1(collections123);
+    foreach (TableKeySchema primaryKey in SourceTable.PrimaryKeys) {
+        string pkClassName = ClassName(primaryKey.ForeignKeyTable.Name, Culture);
+        int index = 0;
+        foreach (ColumnSchema column in primaryKey.PrimaryKeyMemberColumns) {
+            string fkPropertyName = PropertyName(column.Name);
+            string pkPropertyName = PropertyName(primaryKey.ForeignKeyMemberColumns[index].Name);
+
+            string x = "";
+            if (collections123.ContainsKey(pkClassName)) {
+                if (++collections123[pkClassName] > 1) {
+                    x = "@*";
+                }
+            }
+            if (x == "@*") { %>
+        @*
+<%          } %>
+            <div>@<%= pkClassName %>Resources.EntityPlural</div>
+<%          if (x == "@*") { %>
+        *@
+<%          }
+
+            index++;
+        }
+    } %>
+        </div>
+        <div class="e-content">
+            <div data-easylob-id="TabItem_<%= className %>">
+                <div class="@AppDefaults.CSSClassTabItem">
+<%  Dictionary1(associations123);
+    foreach (ColumnSchema column in SourceTable.Columns) {
+        string propertyName = PropertyName(column.Name);
+        string cssClassLabel = column.AllowDBNull ? "CssClassLabel" : "CssClassLabelRequired"; %>
+
+<%      if (column.IsForeignKeyMember) {
+            string fkClassName = ClassName(FKTableName(SourceTable, column), Culture);
+
+            //string fkClassName2 = fkClassName;
+            //string fkClassName2 = fkClassName == className ? fkClassName + fkPropertyName : fkClassName;
+            string fkClassName2 = fkClassName == className ? fkClassName + fkClassName : fkClassName;
+
+            string x = "";
+            if (associations123.ContainsKey(fkClassName)) {
+                x = (++associations123[fkClassName]).ToString();
+            } %>
+                    <div id="Group_<%= className %>_<%= propertyName %>" class="@profile.EditCSSGroupFor("<%= fkClassName2 %>LookupText")">
+                        @Html.LabelFor(model => model.<%= className %>.<%= propertyName %>, new { @class = profile.EditCSSLabelFor("<%= propertyName %>") })
+                        @Html.EditorFor(model => model.<%= className %>.<%= propertyName %>, new { htmlAttributes = new { @class = profile.EditCSSEditorFor("<%= propertyName %>"), id = "<%= className %>_<%= propertyName %>" } })
+                        @{
+                            Html.RenderAction("Lookup", "<%= fkClassName %>", new
+                            {
+                                Text = <%= ObjectName(fkClassName2, Culture) %><%= x %>Text,
+                                ValueId = "<%= className %>_<%= propertyName %>",
+                                Required = profile.IsRequiredView("<%= propertyName %>")
+                            });
+                        }
+<%      } else if (IsDate(column.DataType)) { %>
+                    <div id="Group_<%= className %>_<%= propertyName %>" class="@profile.EditCSSGroupFor("<%= propertyName %>")">
+                        @Html.LabelFor(model => model.<%= className %>.<%= propertyName %>, new { @class = profile.EditCSSLabelFor("<%= propertyName %>") })
+                        @* @Html.EditorFor(model => model.<%= className %>.<%= propertyName %>, new { htmlAttributes = new { @class = profile.EditCSSEditorFor("<%= propertyName %>"), id = "<%= className %>_<%= propertyName %>" } }) *@
+                        @(Html.EJS().DatePickerFor(model => model.<%= className %>.<%= propertyName %>)
+                             id = "<%= className %>_<%= propertyName %>" }).Render()
+                            .CssClass(profile.EditCSSEditorDateTimeFor("<%= propertyName %>"))
+                            .Format(PatternResources.Format_Date)
+                            .HtmlAttributes(new Dictionary<string, object> { { "id", "<%= className %>_<%= propertyName %>" } })
+                            .Locale(AppHelper.CultureLanguage)
+                            .Render()
+                        )
+<%      } else if (IsDateTime(column.DataType)) { %>
+                    <div id="Group_<%= className %>_<%= propertyName %>" class="@profile.EditCSSGroupFor("<%= propertyName %>")">
+                        @Html.LabelFor(model => model.<%= className %>.<%= propertyName %>, new { @class = profile.EditCSSLabelFor("<%= propertyName %>") })
+                        @* @Html.EditorFor(model => model.<%= className %>.<%= propertyName %>, new { htmlAttributes = new { @class = profile.EditCSSEditorFor("<%= propertyName %>"), id = "<%= className %>_<%= propertyName %>" } }) *@
+                        @(Html.EJS().DatePickerFor(model => model.<%= className %>.<%= propertyName %>)
+                             id = "<%= className %>_<%= propertyName %>" }).Render()
+                            .CssClass(profile.EditCSSEditorDateTimeFor("<%= propertyName %>"))
+                            .Format(PatternResources.Format_DateTime)
+                            .HtmlAttributes(new Dictionary<string, object> { { "id", "<%= className %>_<%= propertyName %>" } })
+                            .Locale(AppHelper.CultureLanguage)
+                            .Render()
+                        )
+<%      } else if (IsImage(column)) { %>
+                    <div id="Group_<%= className %>_<%= propertyName %>" class="@AppDefaults.CSSClassGroupImage col-md-2">
+                        @Html.LabelFor(model => model.<%= className %>.<%= propertyName %>, new { @class = profile.EditCSSLabelFor("<%= propertyName %>") })
+                        <img src="@<%= objectName %>_<%= propertyName %>_Source" class="z-image" />
+<%      } else if (IsBoolean(column.DataType)) { %>
+                    <div id="Group_<%= className %>_<%= propertyName %>" class="@profile.EditCSSGroupFor("<%= propertyName %>")">
+                        @Html.LabelFor(model => model.<%= className %>.<%= propertyName %>, new { @class = profile.EditCSSLabelFor("<%= propertyName %>") })
+                        @Html.EditorFor(model => model.<%= className %>.<%= propertyName %>, new { htmlAttributes = new { @class = profile.EditCSSEditorFor("<%= propertyName %>"), id = "<%= className %>_<%= propertyName %>" } })
+<%      } else { %>
+                    <div id="Group_<%= className %>_<%= propertyName %>" class="@profile.EditCSSGroupFor("<%= propertyName %>")">
+                        @Html.LabelFor(model => model.<%= className %>.<%= propertyName %>, new { @class = profile.EditCSSLabelFor("<%= propertyName %>") })
+                        @Html.EditorFor(model => model.<%= className %>.<%= propertyName %>, new { htmlAttributes = new { @class = profile.EditCSSEditorFor("<%= propertyName %>"), id = "<%= className %>_<%= propertyName %>" } })
+<%      } %>
+                        @* @Html.ValidationMessageFor(model => model.<%= className %>.<%= propertyName %>, "", new { @class = AppDefaults.CSSClassValidator }) *@
+                    </div>
+<%  } %>
+
+                </div>
+            </div>
+<%  Dictionary1(collections123);
+    foreach (TableKeySchema primaryKey in SourceTable.PrimaryKeys) {
+        string pkClassName = ClassName(primaryKey.ForeignKeyTable.Name, Culture);
+        int index = 0;
+        foreach (ColumnSchema column in primaryKey.PrimaryKeyMemberColumns) {
+            string fkPropertyName = PropertyName(column.Name);
+            string pkPropertyName = PropertyName(primaryKey.ForeignKeyMemberColumns[index].Name);
+
+            string x = "";
+            if (collections123.ContainsKey(pkClassName)) {
+                if (++collections123[pkClassName] > 1) {
+                    x = "@*";
+                }
+            }
+            if (x == "@*") { %>
+            @*
+<%          } %>
+            <div data-easylob-id="TabItem_<%= className %>_<%= Plural(pkClassName, Culture) %>">
+                <div class="@AppDefaults.CSSClassTabItem">
+
+                    <div id="Ajax_<%= className %>_<%= Plural(pkClassName, Culture) %>"></div>
+
+                </div>
+            </div>
+<%          if (x == "@*") { %>
+            *@
+<%          }
+
+            index++;
+        }
+    } %>
+        </div>
+    </div>
+</div>
+
+<script>
+    zSyncfusionItem("Item_<%= className %>");
+
+    $(function () {
+        try {
+            zSyncfusionItemReady("Item_<%= className %>");
+
+            var model = @Html.Raw(JsonConvert.SerializeObject(Model));
+            var profile = @Html.Raw(JsonConvert.SerializeObject(profile));
+            var controllerAction = model.ControllerAction == null ? "" : model.ControllerAction.toLowerCase();
+
+            var ejTab = new ej.navigations.Tab({
+                selected: function (args) { selected_Tab_<%= className %>(args); }
+            });
+            ejTab.appendTo("#Tab_<%= className %>");
+
+            // Associations (FK)
+<%  if (SourceTable.ForeignKeys.Count > 0) { %>
+            switch (model.MasterEntity) {
+<%      Dictionary1(associations123);
+        foreach (TableKeySchema fkTable in SourceTable.ForeignKeys) {
+            string fkClassName = ClassName(fkTable.ForeignKeyTable.FullName, Culture);
+            ColumnSchema fkColumn = fkTable.ForeignKeyMemberColumns[0];
+            string fkPropertyName = PropertyName(fkColumn.Name);
+
+            string pkClassName = ClassName(fkTable.PrimaryKeyTable.FullName, Culture);
+            ColumnSchema pkColumn = fkTable.PrimaryKeyMemberColumns[0];
+            string pkPropertyName = PropertyName(pkColumn.Name);
+            pkPropertyName = pkPropertyName == className ? pkPropertyName + fkPropertyName : pkPropertyName;
+
+            string x = "";
+            if (associations123.ContainsKey(pkClassName)) {
+                if (++associations123[pkClassName] > 1) {
+                    x = "//";
+                }
+            } %>
+                <%= x %>case "<%= pkClassName %>":
+                <%= x %>    $("#<%= fkClassName %>_<%= fkPropertyName %>").val(model.MasterKey);
+                <%= x %>    $("#Group_<%= fkClassName %>_<%= fkPropertyName %>").hide();
+                <%= x %>    break;
+<%      } %>
+            }
+<%  } %>
+
+            // Collections (PK)
+<%  Dictionary1(collections123);
+    foreach (TableKeySchema primaryKey in SourceTable.PrimaryKeys) {
+        string pkClassName = ClassName(primaryKey.ForeignKeyTable.Name, Culture);
+        int index = 0;
+        foreach (ColumnSchema column in primaryKey.PrimaryKeyMemberColumns) {
+            string fkPropertyName = PropertyName(column.Name);
+            string pkPropertyName = PropertyName(primaryKey.ForeignKeyMemberColumns[index].Name);
+
+            string x = "";
+            if (collections123.ContainsKey(pkClassName)) {
+                if (++collections123[pkClassName] > 1) {
+                    x = "//";
+                }
+            } %>
+            <%= x %>if (controllerAction != "create" && zContains(profile.EditCollections, "<%= Plural(pkClassName, Culture) %>")) {
+            <%= x %>    zUrlDictionaryWrite("<%= pkClassName %>", "@Context.Request.Url.AbsoluteUri");
+            <%= x %>    var ajaxUrl = "@(Html.Raw(Url.Action("Search", "<%= pkClassName %>", new { MasterControllerAction = Model.ControllerAction, MasterEntity = "<%= className %>", MasterKey = Model.<%= className %>.<%= fkPropertyName %> })))";
+            <%= x %>    zAjaxLoadSync("Ajax_<%= className %>_<%= Plural(pkClassName, Culture) %>", ajaxUrl);
+            <%= x %>}
+<%          index++;
+        }
+    } %>
+
+            zOnItemView(model, profile);
+        } catch (exception) {
+            zAlert(zExceptionMessage("@CSHTML", "function", exception));
+        }
+    });
+
+    function selected_Tab_<%= className %>(args) {
+        zTabDictionaryWrite("<%= className %>", args.selectedIndex);
+
+        try {
+            var tabId = $(args.selectedContent).attr("data-easylob-id").replace("TabItem_<%= className %>_", "");
+            switch (tabId) {
+<%      Dictionary1(collections123);
+        foreach (TableKeySchema primaryKey in SourceTable.PrimaryKeys) {
+            string pkClassName = ClassName(primaryKey.ForeignKeyTable.Name, Culture);
+
+            string x = "";
+            if (collections123.ContainsKey(pkClassName)) {
+                if (++collections123[pkClassName] > 1) {
+                    x = "//";
+                }
+            } %>
+                <%= x %>case "<%= Plural(pkClassName, Culture) %>":
+                <%= x %>    zGridDataSource("Grid_<%= pkClassName %>", "@Url.Action("DataSource", "<%= pkClassName %>")");
+                <%= x %>    break;
+<%      } %>
+            }
+        } catch (exception) {
+            zAlert(zExceptionMessage("@CSHTML", "selected_Tab_<%= className %>", exception));
+        }
+    }
+</script>
+
+@Html.EJS().ScriptManager()

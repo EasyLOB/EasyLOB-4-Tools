@@ -1,0 +1,42 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="Text" Src="CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+<%@ Property Name="Output" Type="String" Category="Context" Description="Output Directory" %>
+
+<%@ Property Name="SourceTables" Type="SchemaExplorer.TableSchemaCollection" Category="Database" Description="Tables" %>
+
+<%@ Property Name="DoPersistenceEntityFrameworkConfiguration" Type="Boolean" Default="False" Category="To-Do" Description="Generate Persistence :: EF Configurations ?" %>
+<%@ Property Name="DoPersistenceEntityFrameworkDbContext" Type="Boolean" Default="False" Category="To-Do" Description="Generate Persistence :: EF DbContext ?" %>
+<%--
+<%@ Property Name="DoPersistenceEntityFrameworkGenericRepository" Type="Boolean" Default="False" Category="To-Do" Description="Generate Persistence :: EF Generic Repository ?" %>
+<%@ Property Name="DoPersistenceEntityFrameworkUnitOfWork" Type="Boolean" Default="False" Category="To-Do" Description="Generate Persistence :: EF Unit of Work ?" %>
+--%>
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%
+if (DoPersistenceEntityFrameworkConfiguration)
+{
+    GeneratePersistenceEntityFrameworkConfiguration(SourceTables, Application, Namespace, Output, Culture);
+}
+
+if (DoPersistenceEntityFrameworkDbContext)
+{
+    GeneratePersistenceEntityFrameworkDbContext(SourceTables, Application, Namespace, Output, Culture);
+}
+/*
+if (DoPersistenceEntityFrameworkGenericRepository)
+{
+    GeneratePersistenceEntityFrameworkGenericRepository(SourceTables, Application, Namespace, Output, Culture);
+}
+
+if (DoPersistenceEntityFrameworkUnitOfWork)
+{
+    GeneratePersistenceEntityFrameworkUnitOfWork(SourceTables, Application, Namespace, Output, Culture);
+}
+*/
+%>

@@ -1,0 +1,95 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Database" Description="Table" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="System.Collections" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%
+if (SourceTable.PrimaryKey == null) {
+    throw new ApplicationException("SourceTable does not contain a primary key.");
+}
+
+string tableName = TableName(SourceTable.FullName);
+string className = ClassName(SourceTable.FullName, Culture);
+string objectName = ObjectName(SourceTable.FullName, Culture);
+%>
+$("#Grid<%= className %>").ejGrid({
+    allowPaging: true,
+    pageSettings: { pageSize: 20 },
+    allowResizing: true,
+    allowSorting: true,
+    allowTextWrap: true,
+    textWrapSettings: { wrapMode: ej.Grid.WrapMode.Both },
+    columns: Grid<%= className %>Columns,
+    enableTouch: false,
+    locale: "@System.Globalization.CultureInfo.CurrentCulture.Name"
+});
+
+var Grid<%= className %>Columns = [
+<%  foreach (ColumnSchema column in SourceTable.Columns) {
+        bool columnIsPrimaryKey = column.IsPrimaryKeyMember;
+        bool columnIsForeignKey = column.IsForeignKeyMember;
+        bool columnIsIdentity = IsIdentity(column);
+        bool columnIsNullable = column.AllowDBNull;
+
+        if (IsBoolean(column.DataType)) { %>
+    {
+        field: "<%= PropertyName(column.Name) %>", type: "boolean", clipMode: ej.Grid.ClipMode.Ellipsis,
+        headerText: "@<%= className %>Resources.Property<%= PropertyName(column.Name) %>", textAlign: ej.TextAlign.Center, width: <%= KnockoutWidth(column) %>
+    },
+<%      } else if (IsDate(column.DataType)) { %>
+    {
+        field: "<%= PropertyName(column.Name) %>", type: "date", width: 5, clipMode: ej.Grid.ClipMode.Ellipsis, format: "@SyncfusionPatternResources.GridFormat_Date",
+        headerText: "@<%= className %>Resources.Property<%= PropertyName(column.Name) %>", textAlign: ej.TextAlign.Left, width: <%= KnockoutWidth(column) %>
+    },
+<%      } else if (IsTime(column.DataType)) { %>
+    {
+        field: "<%= PropertyName(column.Name) %>", type: "datetime", clipMode: ej.Grid.ClipMode.Ellipsis, format: "@SyncfusionPatternResources.GridFormat_DateTime",
+        headerText: "@<%= className %>Resources.Property<%= PropertyName(column.Name) %>",textAlign: ej.TextAlign.Left, width: <%= KnockoutWidth(column) %>
+    },
+<%      } else if (IsDateTime(column.DataType)) { %>
+    {
+        field: "<%= PropertyName(column.Name) %>", type: "datetime", clipMode: ej.Grid.ClipMode.Ellipsis, format: "@SyncfusionPatternResources.GridFormat_DateTime",
+        headerText: "@<%= className %>Resources.Property<%= PropertyName(column.Name) %>", textAlign: ej.TextAlign.Left, width: <%= KnockoutWidth(column) %>
+    },
+<%      } else if (IsInteger(column.DataType)) { %>
+    {
+        field: "<%= PropertyName(column.Name) %>", type: "number", clipMode: ej.Grid.ClipMode.Ellipsis, format: "@SyncfusionPatternResources.GridFormat_Integer",
+        headerText: "@<%= className %>Resources.Property<%= PropertyName(column.Name) %>", textAlign: ej.TextAlign.Right, width: <%= KnockoutWidth(column) %>
+    },
+<%      } else if (IsDecimal(column.DataType) || IsFloat(column.DataType)) { %>
+    {
+        field: "<%= PropertyName(column.Name) %>", type: "number", clipMode: ej.Grid.ClipMode.Ellipsis, format: "@SyncfusionPatternResources.GridFormat_Float",
+        headerText: "@<%= className %>Resources.Property<%= PropertyName(column.Name) %>", textAlign: ej.TextAlign.Right, width: <%= KnockoutWidth(column) %>
+    },
+<%      } else { %>
+    {
+        field: "<%= PropertyName(column.Name) %>", type: "string", clipMode: ej.Grid.ClipMode.Ellipsis,
+        headerText: "@<%= className %>Resources.Property<%= PropertyName(column.Name) %>", textAlign: ej.TextAlign.Left, width: <%= KnockoutWidth(column) %>
+    },
+<%      }
+        if (columnIsForeignKey) {
+            foreach (TableKeySchema fkTable in SourceTable.ForeignKeys) {
+                if (fkTable.ForeignKeyMemberColumns[0].Name == column.Name) {
+                    string pkClassName = ClassName(fkTable.PrimaryKeyTable.FullName, Culture);
+                    ColumnSchema fkColumn = fkTable.ForeignKeyMemberColumns[0];
+                    string fkPropertyName = PropertyName(fkColumn.Name);
+
+                    string pkClassName2 = pkClassName == className ? pkClassName + "X" : pkClassName; %>
+    {
+        field: "<%= pkClassName2 %>LookupText", type: "string", clipMode: ej.Grid.ClipMode.Ellipsis,
+        headerText: "@<%= ClassName(fkTable.PrimaryKeyTable.FullName, Culture) %>Resources.EntitySingular", textAlign: ej.TextAlign.Left, width: 20
+    },
+<%              }
+            }
+        }
+    } %>
+];

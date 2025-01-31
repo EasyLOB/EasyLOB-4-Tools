@@ -1,0 +1,70 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="Text" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="SourceTables" Type="SchemaExplorer.TableSchemaCollection" Category="Database" Description="Tables" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<script runat="template">
+public string ColumnPK(ColumnSchema column)
+
+{
+    if (column.IsPrimaryKeyMember)
+	    return "PK";
+    else
+        return "--";
+}
+
+public string ColumnFK(ColumnSchema column)
+{
+    if (column.IsForeignKeyMember)
+	    return "FK";
+    else
+        return "--";
+}
+
+public string ColumnNULL(ColumnSchema column)
+{
+    if (column.AllowDBNull)
+	    return "NULL";
+    else
+        return "----";
+}
+
+public string FKTableName(TableSchema table, ColumnSchema column)
+{
+    string fkTableName = "";
+
+    foreach (TableKeySchema tableX in table.ForeignKeys)
+    {
+        foreach (ColumnSchema columnX in tableX.ForeignKeyMemberColumns)
+        {
+            if (columnX.Name == column.Name)
+            {
+                fkTableName = tableX.PrimaryKeyTable.Name.Replace("dbo", "").Replace(".","");
+                break;
+            }
+        }
+    }
+
+    return fkTableName;
+}
+
+</script>
+----------------------------------------------------------------------------------------------------
+<%  foreach (TableSchema table in SourceTables) {
+        //if (table.HasPrimaryKey) { // 2.6
+        //if (table.PrimaryKey.MemberColumns.Count > 0) { %>
+<%= table.Name %>
+    [Columns]
+<%          foreach (ColumnSchema column in table.Columns) { %>
+        <%= column.Name.PadRight(20) %> <%= column.DataType.ToString().PadRight(10) %> <%= GetDbType(column.DataType).PadRight(30) %> <%= ColumnPK(column) %> <%= ColumnFK(column) %> <%= ColumnNULL(column) %>
+        <%= "".PadRight(20) %> <%= "DataType".PadRight(10) %> <%= "Name".PadRight(30) %> <%= "PropertyState".PadRight(20) %> <%= "Value".PadRight(30) %>
+<%              foreach(ExtendedProperty property in column.ExtendedProperties) {  %>
+        <%= "".PadRight(20) %> <%= property.DataType.ToString().PadRight(10) %> <%= property.Name.PadRight(30) %> <%= property.PropertyState.ToString().PadRight(20) %> <%= property.Value.ToString().PadRight(30) %>
+<%              }
+            } %>
+----------------------------------------------------------------------------------------------------
+<%      //}
+    } %>

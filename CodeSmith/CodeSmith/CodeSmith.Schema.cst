@@ -1,0 +1,92 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="Text" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="SourceTables" Type="SchemaExplorer.TableSchemaCollection" Category="Database" Description="Tables" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<script runat="template">
+
+public string ColumnPK(ColumnSchema column)
+{
+    if (column.IsPrimaryKeyMember)
+        return "PK";
+    else
+        return "--";
+}
+
+public string ColumnFK(ColumnSchema column)
+{
+    if (column.IsForeignKeyMember)
+        return "FK";
+    else
+        return "--";
+}
+
+public string ColumnNULL(ColumnSchema column)
+{
+    if (column.AllowDBNull)
+        return "NULL";
+    else
+        return "----";
+}
+
+public string FKTableName(TableSchema table, ColumnSchema column)
+{
+    string fkTableName = "";
+
+    foreach (TableKeySchema tableX in table.ForeignKeys)
+    {
+        foreach (ColumnSchema columnX in tableX.ForeignKeyMemberColumns)
+        {
+            if (columnX.Name == column.Name)
+            {
+                fkTableName = tableX.PrimaryKeyTable.Name.Replace("dbo", "").Replace(".","");
+                break;
+            }
+        }
+    }
+
+    return fkTableName;
+}
+
+</script>
+---------------------------------------
+<%  foreach (TableSchema table in SourceTables) {
+        //if (table.HasPrimaryKey) { // 2.6
+        //if (table.PrimaryKey.MemberColumns.Count > 0) { %>
+<%= table.Name %>
+    [Columns]                          Size DataType             NativeType           .NET                 SQL
+<%          foreach (ColumnSchema column in table.Columns) { %>
+        <%= column.Name.PadRight(30) %> <%= column.Size.ToString().PadRight(5) %> <%= column.DataType.ToString().PadRight(20) %> <%= column.NativeType.ToString().PadRight(20) %> <%= GetType(column).PadRight(20) %> <%= GetSqlType(column).PadRight(20) %> <%= ColumnPK(column) %> <%= ColumnFK(column) %> <%= ColumnNULL(column) %>
+<%          } %>
+    [PrimaryKey.MemberColumns]
+<%          if (table.HasPrimaryKey) {
+                //foreach (MemberColumnSchema column in table.PrimaryKey.MemberColumns) { // 2.6
+                foreach (ColumnSchema column in table.PrimaryKey.MemberColumns) { %>
+        <%= column.Name.PadRight(30) %>
+<%              }
+            } %>
+    [PrimaryKeys]
+<%          foreach (TableKeySchema pkTable in table.PrimaryKeys) { %>
+        [<%= pkTable.Name %>]
+<%              int index = 0;
+                //foreach (MemberColumnSchema column in pkTable.PrimaryKeyMemberColumns) { // 2.6
+                foreach (ColumnSchema column in pkTable.PrimaryKeyMemberColumns) { %>
+            <%= pkTable.PrimaryKeyTable.Name %>.<%= column.Name %> <= <%= pkTable.ForeignKeyTable.Name %>.<%= pkTable.ForeignKeyMemberColumns[index++].Name %>
+<%              }
+            } %>
+    [ForeignKeys]
+<%          foreach (TableKeySchema fkTable in table.ForeignKeys) { %>
+        [<%= fkTable.Name %>]
+<%              //foreach (MemberColumnSchema column in fkTable.ForeignKeyMemberColumns) // 2.6
+                foreach (ColumnSchema fkColumn in fkTable.ForeignKeyMemberColumns) {
+                    ColumnSchema pkColumn = fkTable.PrimaryKeyMemberColumns[0];%>
+            <%= fkTable.ForeignKeyTable.Name %>.<%= fkColumn.Name %> => <%= fkTable.PrimaryKeyTable.Name %>.<%= pkColumn.Name %> [<%= fkTable.PrimaryKey.Name %>]
+<%              }
+            } %>
+---------------------------------------
+
+<%      //}
+    } %>

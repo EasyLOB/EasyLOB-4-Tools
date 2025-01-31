@@ -1,0 +1,34 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTables" Type="SchemaExplorer.TableSchemaCollection" Category="Database" Description="Tables" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+using EasyLOB;
+using EasyLOB.Application;
+
+namespace <%= Namespace %>
+{
+    public class <%= Application %>GenericApplication<TEntity>
+        : GenericApplication<TEntity>, I<%= Application %>GenericApplication<TEntity>
+        where TEntity : class, IZDataModel
+    {
+        #region Methods
+
+        public <%= Application %>GenericApplication(I<%= Application %>UnitOfWork unitOfWork,
+            IAuditTrailManager auditTrailManager,
+            IAuthorizationManager authorizationManager)
+            : base(unitOfWork, auditTrailManager, authorizationManager)
+        {
+        }
+
+        #endregion Methods
+    }
+}

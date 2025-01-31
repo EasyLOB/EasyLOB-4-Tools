@@ -1,0 +1,99 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Database" Description="Table" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%
+
+// Associations (FK) => Relationships FK
+// Collections (PK)  => Relationships PK
+
+if (SourceTable.PrimaryKey == null) {
+    throw new ApplicationException("SourceTable does not contain a primary key.");
+}
+
+string tableName = TableName(SourceTable.FullName);
+string className = ClassName(SourceTable.FullName, Culture);
+string objectName = ObjectName(SourceTable.FullName, Culture);
+
+string comma = "";
+int commaIndex = 0;
+%>
+using <%= Namespace.Replace(".Persistence", ".Data") %>;
+using EasyLOB;
+using EasyLOB.Data;
+using EasyLOB.Persistence;
+using System.Linq;
+
+namespace <%= Namespace %>
+{
+    public class <%= Application %><%= className %>RepositoryLINQ2DB : <%= Application %>GenericRepositoryLINQ2DB<<%= className %>>
+    {
+        #region Methods
+
+        public <%= Application %><%= className %>RepositoryLINQ2DB(IUnitOfWork unitOfWork)
+            : base(unitOfWork)
+        {
+        }
+
+        public override IQueryable<<%= className %>> Join(IQueryable<<%= className %>> query)
+        {
+            return
+                from <%= objectName %> in query
+<%  comma = ",";
+    commaIndex = 0;
+    foreach (TableKeySchema fkTable in SourceTable.ForeignKeys) {
+        string fkClassName = ClassName(fkTable.ForeignKeyTable.FullName, Culture);
+        ColumnSchema fkColumn = fkTable.ForeignKeyMemberColumns[0];
+        string fkPropertyName = PropertyName(fkColumn.Name);
+
+        string pkClassName = ClassName(fkTable.PrimaryKeyTable.FullName, Culture);
+        ColumnSchema pkColumn = fkTable.PrimaryKeyMemberColumns[0];
+        string pkPropertyName = PropertyName(pkColumn.Name);
+
+        string pkClassName2 = pkClassName == fkClassName ? pkClassName + "X" : pkClassName;
+        if (fkColumn.AllowDBNull) { %>
+                from <%= ObjectName(pkClassName2, Culture) %> in UnitOfWork.GetQuery<<%= pkClassName %>>().Where(x => x.<%= pkPropertyName %> == <%= objectName %>.<%= fkPropertyName %>).DefaultIfEmpty() // LEFT JOIN
+<%      } else { %>
+                join <%= ObjectName(pkClassName2, Culture) %> in UnitOfWork.GetQuery<<%= pkClassName %>>() on <%= objectName %>.<%= fkPropertyName %> equals <%= ObjectName(pkClassName2, Culture) %>.<%= pkPropertyName %> // INNER JOIN
+<%      }
+    } %>
+                select new <%= className %>
+                {
+<%  foreach (ColumnSchema column in SourceTable.Columns) {
+        if (++commaIndex >= SourceTable.Columns.Count + SourceTable.ForeignKeys.Count) {
+            comma = "";
+        } %>
+                    <%= PropertyName(column.Name) %> = <%= objectName %>.<%= PropertyName(column.Name) %><%= comma %>
+<%  }
+    foreach (TableKeySchema fkTable in SourceTable.ForeignKeys) {
+        string fkClassName = ClassName(fkTable.ForeignKeyTable.FullName, Culture);
+        ColumnSchema fkColumn = fkTable.ForeignKeyMemberColumns[0];
+        string fkPropertyName = PropertyName(fkColumn.Name);
+
+        string pkClassName = ClassName(fkTable.PrimaryKeyTable.FullName, Culture);
+        ColumnSchema pkColumn = fkTable.PrimaryKeyMemberColumns[0];
+        string pkPropertyName = PropertyName(pkColumn.Name);
+
+        string pkClassName2 = pkClassName == fkClassName ? pkClassName + "X" : pkClassName;
+
+        if (++commaIndex >= SourceTable.Columns.Count + SourceTable.ForeignKeys.Count) {
+            comma = "";
+        } %>
+                    <%= pkClassName2 %> = <%= ObjectName(pkClassName2, Culture) %><%= comma %>
+<%  } %>
+                };
+        }
+
+        #endregion Methods
+    }
+}
+

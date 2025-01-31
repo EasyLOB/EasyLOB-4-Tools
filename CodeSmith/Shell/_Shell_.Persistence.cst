@@ -1,0 +1,58 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTables" Type="SchemaExplorer.TableSchemaCollection" Category="Database" Description="Tables" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+using <%= Application %>;
+using <%= Application %>.Data;
+using System;
+using System.Linq;
+
+namespace EasyLOB
+{
+    public static partial class ShellHelper
+    {
+        private static void Persistence<%= Application %>Demo()
+        {
+            Console.WriteLine("\nPersistence <%= Application %> Demo\n");
+
+            IUnitOfWork unitOfWork = (IUnitOfWork)EasyLOBHelper.GetService<I<%= Application %>UnitOfWork>();
+            Console.WriteLine(unitOfWork.GetType().FullName + " with " + unitOfWork.DBMS.ToString() + "\n");
+
+<%  foreach (TableSchema SourceTable in SourceTables) {
+        string tableName = TableName(SourceTable.FullName);
+        string className = ClassName(SourceTable.FullName, Culture);
+        string objectName = ObjectName(SourceTable.FullName, Culture);
+
+        string defaultProperty = "";
+        if (SourceTable.NonPrimaryKeyColumns.Count > 0) {
+            defaultProperty = PropertyName(SourceTable.NonPrimaryKeyColumns[0].Name);
+        } else {
+            defaultProperty = PropertyName(SourceTable.PrimaryKey.MemberColumns[0].Name);
+        }
+
+        ColumnSchema column = SourceTable.PrimaryKey.MemberColumns[0];
+        string keyColumn = ColumnName(column.Name);
+        string keyProperty = PropertyName(column.Name);
+        string keyPropertyType = GetType(column, true);
+        string keyPropertyDbType = GetDbType(column.DataType); %>
+            Persistence<%= Application %>Data<<%= className %>>(unitOfWork);
+<%  } %>
+        }
+
+        private static void Persistence<%= Application %>Data<TEntity>(IUnitOfWork unitOfWork)
+            where TEntity : class, IZDataModel
+        {
+            IGenericRepository<TEntity> repository = unitOfWork.GetRepository<TEntity>();
+            TEntity entity = repository.Query().FirstOrDefault();
+            Console.WriteLine(typeof(TEntity).Name + ": " + repository.CountAll());
+        }
+    }
+}

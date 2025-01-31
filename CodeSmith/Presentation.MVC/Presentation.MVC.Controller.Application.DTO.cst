@@ -1,0 +1,438 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Archetype" Type="XCodeSmith.Archetypes" Category="Context" Description="Controllers Archetype" %>
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+<%@ Property Name="Syncfusion" Type="XCodeSmith.Syncfusions" Category="Context" Description="Syncfusion Components" %>
+
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Database" Description="Table" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%
+if (SourceTable.PrimaryKey == null) {
+    throw new ApplicationException("SourceTable does not contain a primary key.");
+}
+
+string tableName = TableName(SourceTable.FullName);
+string className = ClassName(SourceTable.FullName, Culture);
+string objectName = ObjectName(SourceTable.FullName, Culture);
+
+// DataSource(...)
+// orderBy = IsNullOrEmpty(orderBy) ? "<= pkOrderBy >" : orderBy;
+
+string pkParameters = ""; // int? parameter1, string parameter2, ...
+string pkParametersArray = ""; // new object[] { parameter1, parameter2, ... };
+string pkParametersIsNull = ""; // parameter1 == null || parameter2 == null || ...
+string pkPropertiesArray = ""; // new object[] { ClassItemModel.Class.Property1, ClassItemModel.Class.Property2, ... };
+// Url.Content(string.Format("~/< %= className % >/Update< %= pkUrl1 % >", < %= pkUrl2 % >)));
+string pkUrl1 = ""; // ?Key1={0}&Key2={1}& ...
+string pkUrl2 = ""; //  , objectItemModel.Key1, objectItemModel.Key2, ...
+// Url.Action("Update", "< %= className % >", new { < %= pkObject % > }, Request.Url.Scheme));
+string pkObject = ""; // Key1 = objectItemModel.Key1, Key2 objectItemModel.Key2, ...
+int urlIndex = 0;
+//string pkPropertiesOrderBy = ""; // Property1, Property2, ...
+foreach (ColumnSchema column in SourceTable.PrimaryKey.MemberColumns) {
+    pkParameters += (pkParameters == "" ? "" : ", ") + GetType(column, false) + " " + LocalName(column.Name);
+    pkParametersArray += (pkParametersArray == "" ? "" : ", ") + LocalName(column.Name);
+    pkPropertiesArray += (pkPropertiesArray == "" ? "" : ", ") + objectName + "ItemModel." + className + "." + PropertyName(column.Name);
+    pkParametersIsNull += (pkParametersIsNull == "" ? "" : " || ") + LocalName(PropertyName(column.Name)) + " == null";
+    //pkPropertiesOrderBy += (pkPropertiesOrderBy == "" ? "" : ", ") + PropertyName(column.Name);
+    pkUrl1 += (pkUrl1 == "" ? "" : "&") + PropertyName(column.Name) + "={" + urlIndex++.ToString() +"}";
+    pkUrl2 += (pkUrl2 == "" ? "" : ", ") + objectName +  "DTO." + PropertyName(column.Name);
+    pkObject += (pkObject == "" ? "" : ", ") + PropertyName(column.Name) + " = " + objectName +  "DTO." + PropertyName(column.Name);
+}
+//if (SourceTable.PrimaryKey.MemberColumns.Count > 1) {
+    pkParametersArray = "new object[] { " + pkParametersArray + " }";
+    pkPropertiesArray = "new object[] { " + pkPropertiesArray + " }";
+//}
+//else
+//{
+//    ColumnSchema column = SourceTable.PrimaryKey.MemberColumns[0];
+//    pkParametersArray = "(" + GetType(column) + ")" + LocalName(PropertyName(column.Name));
+//    pkPropertiesArray = objectName + "ItemModel." + className + "." + PropertyName(column.Name);
+//}
+pkUrl1 = (pkUrl1 == "" ? "" : "?") + pkUrl1;
+pkUrl2 = (pkUrl2 == "" ? "" : ", ") + pkUrl2;
+%>
+using <%= Application %>.Application;
+using <%= Application %>.Data;
+using <%= Application %>.Data.Resources;
+using EasyLOB;
+using EasyLOB.Data;
+using EasyLOB.Mvc;
+using Newtonsoft.Json;
+<%  if (Syncfusion == XCodeSmith.Syncfusions.EJ1) { %>
+using Syncfusion.JavaScript;
+<%  } else { %>
+using Syncfusion.EJ2.Base;
+<%  } %>
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Web.Mvc;
+
+namespace <%= Namespace %>
+{
+    public partial class <%= className %>Controller : BaseMvcControllerSCRUDApplicationDTO<<%= className %>DTO, <%= className %>>
+    {
+        #region Methods
+
+        public <%= className %>Controller(I<%= Application %>GenericApplicationDTO<<%= className %>DTO, <%= className %>> application)
+            : base(application.AuthorizationManager)
+        {
+            Application = application;
+        }
+
+        #endregion Methods
+
+        #region Methods SCRUD
+
+        // GET: <%= className %>
+        // GET: <%= className %>/Index
+        [HttpGet]
+        public ActionResult Index(string operation = null)
+        {
+            <%= className %>CollectionModel <%= objectName %>CollectionModel = new <%= className %>CollectionModel(ActivityOperations, "Index", null, null, null, operation);
+
+            try
+            {
+                if (IsIndex(<%= objectName %>CollectionModel.OperationResult))
+                {
+                    return ZView(<%= objectName %>CollectionModel);
+                }
+            }
+            catch (Exception exception)
+            {
+                <%= objectName %>CollectionModel.OperationResult.ParseException(exception);
+            }
+
+            return ZViewOperationResult(<%= objectName %>CollectionModel.OperationResult);
+        }
+
+        // GET & POST: <%= className %>/Search
+        [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Post)]
+        public ActionResult Search(string masterControllerAction = null, string masterEntity = null, string masterKey = null)
+        {
+            <%= className %>CollectionModel <%= objectName %>CollectionModel = new <%= className %>CollectionModel(ActivityOperations, "Search", masterControllerAction, masterEntity, masterKey);
+
+            try
+            {
+                if (IsOperation(<%= objectName %>CollectionModel.OperationResult))
+                {
+                    return ZPartialView(<%= objectName %>CollectionModel);
+                }
+            }
+            catch (Exception exception)
+            {
+                <%= objectName %>CollectionModel.OperationResult.ParseException(exception);
+            }
+
+            return JsonResultOperationResult(<%= objectName %>CollectionModel.OperationResult);
+        }
+
+        // GET & POST: <%= className %>/Lookup
+        [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Post)]
+        public ActionResult Lookup(string text, string valueId, bool? required = null, List<LookupModelElement> elements = null, string query = null)
+        {
+            LookupModel lookupModel = new LookupModel(ActivityOperations, text, valueId, required, elements, query);
+
+            try
+            {
+                if (IsSearch(lookupModel.OperationResult))
+                {
+                    return ZPartialView("_<%= className %>Lookup", lookupModel);
+                }
+            }
+            catch (Exception exception)
+            {
+                lookupModel.OperationResult.ParseException(exception);
+            }
+
+            return null;
+        }
+
+        // GET: <%= className %>/Create
+        [HttpGet]
+        public ActionResult Create(string masterEntity = null, string masterKey = null)
+        {
+            <%= className %>ItemModel <%= objectName %>ItemModel = new <%= className %>ItemModel(ActivityOperations, "Create", masterEntity, masterKey);
+
+            try
+            {
+                if (IsCreate(<%= objectName %>ItemModel.OperationResult))
+                {
+                    return ZPartialView("CRUD", <%= objectName %>ItemModel);
+                }
+            }
+            catch (Exception exception)
+            {
+                <%= objectName %>ItemModel.OperationResult.ParseException(exception);
+            }
+
+            return JsonResultOperationResult(<%= objectName %>ItemModel.OperationResult);
+        }
+
+        // POST: <%= className %>/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create(<%= className %>ItemModel <%= objectName %>ItemModel)
+        {
+            try
+            {
+                if (IsCreate(<%= objectName %>ItemModel.OperationResult))
+                {
+                    if (IsValid(<%= objectName %>ItemModel.OperationResult, <%= objectName %>ItemModel.<%= className %>))
+                    {
+                        <%= className %>DTO <%= objectName %>DTO = (<%= className %>DTO)<%= objectName %>ItemModel.<%= className %>.ToDTO();
+                        if (Application.Create(<%= objectName %>ItemModel.OperationResult, <%= objectName %>DTO))
+                        {
+                            if (<%= objectName %>ItemModel.IsSave)
+                            {
+                                Create2Update(<%= objectName %>ItemModel.OperationResult);
+                                return JsonResultSuccess(<%= objectName %>ItemModel.OperationResult,
+                                    Url.Action("Update", "<%= className %>", new { <%= pkObject %> }, Request.Url.Scheme));
+                            }
+                            else
+                            {
+                                return JsonResultSuccess(<%= objectName %>ItemModel.OperationResult);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                <%= objectName %>ItemModel.OperationResult.ParseException(exception);
+            }
+
+            return JsonResultOperationResult(<%= objectName %>ItemModel.OperationResult);
+        }
+
+        // GET: <%= className %>/Read/1
+        [HttpGet]
+        public ActionResult Read(<%= pkParameters %>, string masterEntity = null, string masterKey = null)
+        {
+            <%= className %>ItemModel <%= objectName %>ItemModel = new <%= className %>ItemModel(ActivityOperations, "Read", masterEntity, masterKey);
+
+            try
+            {
+                if (IsRead(<%= objectName %>ItemModel.OperationResult))
+                {
+                    <%= className %>DTO <%= objectName %>DTO = Application.GetById(<%= objectName %>ItemModel.OperationResult, <%= pkParametersArray %>, false);
+                    if (<%= objectName %>DTO != null)
+                    {
+                        <%= objectName %>ItemModel.<%= className %> = new <%= className %>ViewModel(<%= objectName %>DTO);
+
+                        return ZPartialView("CRUD", <%= objectName %>ItemModel);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                <%= objectName %>ItemModel.OperationResult.ParseException(exception);
+            }
+
+            return JsonResultOperationResult(<%= objectName %>ItemModel.OperationResult);
+        }
+
+        // GET: <%= className %>/Update/1
+        [HttpGet]
+        public ActionResult Update(<%= pkParameters %>, string masterEntity = null, string masterKey = null)
+        {
+            <%= className %>ItemModel <%= objectName %>ItemModel = new <%= className %>ItemModel(ActivityOperations, "Update", masterEntity, masterKey);
+
+            try
+            {
+                if (IsUpdate(<%= objectName %>ItemModel.OperationResult))
+                {
+                    <%= className %>DTO <%= objectName %>DTO = Application.GetById(<%= objectName %>ItemModel.OperationResult, <%= pkParametersArray %>, false);
+                    if (<%= objectName %>DTO != null)
+                    {
+                        <%= objectName %>ItemModel.<%= className %> = new <%= className %>ViewModel(<%= objectName %>DTO);
+
+                        return ZPartialView("CRUD", <%= objectName %>ItemModel);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                <%= objectName %>ItemModel.OperationResult.ParseException(exception);
+            }
+
+            return JsonResultOperationResult(<%= objectName %>ItemModel.OperationResult);
+        }
+
+        // POST: <%= className %>/Update
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Update(<%= className %>ItemModel <%= objectName %>ItemModel)
+        {
+            try
+            {
+                if (IsUpdate(<%= objectName %>ItemModel.OperationResult))
+                {
+                    if (IsValid(<%= objectName %>ItemModel.OperationResult, <%= objectName %>ItemModel.<%= className %>))
+                    {
+                        <%= className %>DTO <%= objectName %>DTO = (<%= className %>DTO)<%= objectName %>ItemModel.<%= className %>.ToDTO();
+                        if (Application.Update(<%= objectName %>ItemModel.OperationResult, <%= objectName %>DTO))
+                        {
+                            if (<%= objectName %>ItemModel.IsSave)
+                            {
+                                return JsonResultSuccess(<%= objectName %>ItemModel.OperationResult,
+                                    Url.Action("Update", "<%= className %>", new { <%= pkObject %> }, Request.Url.Scheme));
+                            }
+                            else
+                            {
+                                return JsonResultSuccess(<%= objectName %>ItemModel.OperationResult);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                <%= objectName %>ItemModel.OperationResult.ParseException(exception);
+            }
+
+            return JsonResultOperationResult(<%= objectName %>ItemModel.OperationResult);
+        }
+
+        // GET: <%= className %>/Delete/1
+        [HttpGet]
+        public ActionResult Delete(<%= pkParameters %>, string masterEntity = null, string masterKey = null)
+        {
+            <%= className %>ItemModel <%= objectName %>ItemModel = new <%= className %>ItemModel(ActivityOperations, "Delete", masterEntity, masterKey);
+
+            try
+            {
+                if (IsDelete(<%= objectName %>ItemModel.OperationResult))
+                {
+                    <%= className %>DTO <%= objectName %>DTO = Application.GetById(<%= objectName %>ItemModel.OperationResult, <%= pkParametersArray %>, false);
+                    if (<%= objectName %>DTO != null)
+                    {
+                        <%= objectName %>ItemModel.<%= className %> = new <%= className %>ViewModel(<%= objectName %>DTO);
+
+                        return ZPartialView("CRUD", <%= objectName %>ItemModel);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                <%= objectName %>ItemModel.OperationResult.ParseException(exception);
+            }
+
+            return JsonResultOperationResult(<%= objectName %>ItemModel.OperationResult);
+        }
+
+        // POST: <%= className %>/Delete
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Delete(<%= className %>ItemModel <%= objectName %>ItemModel)
+        {
+            try
+            {
+                if (IsDelete(<%= objectName %>ItemModel.OperationResult))
+                {
+                    if (Application.Delete(<%= objectName %>ItemModel.OperationResult, (<%= className %>DTO)<%= objectName %>ItemModel.<%= className %>.ToDTO()))
+                    {
+                        return JsonResultSuccess(<%= objectName %>ItemModel.OperationResult);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                <%= objectName %>ItemModel.OperationResult.ParseException(exception);
+            }
+
+            return JsonResultOperationResult(<%= objectName %>ItemModel.OperationResult);
+        }
+
+        #endregion Methods SCRUD
+
+        #region Methods Syncfusion
+
+        // POST: <%= className %>/DataSource
+        [HttpPost]
+<%  if (Syncfusion == XCodeSmith.Syncfusions.EJ1) { %>
+        public ActionResult DataSource(DataManager dataManager)
+<%  } else { %>
+        public ActionResult DataSource(DataManagerRequest dataManager)
+<%  } %>
+        {
+            SyncfusionDataResult dataResult = new SyncfusionDataResult
+            {
+                dataResult.result = new List<<%= className %>ViewModel>()
+            };
+
+            ZOperationResult operationResult = new ZOperationResult();
+
+            if (IsSearch(operationResult))
+            {
+                try
+                {
+                    SyncfusionGrid syncfusionGrid = new SyncfusionGrid(typeof(<%= className %>), Application.UnitOfWork.DBMS);
+                    ArrayList args = new ArrayList();
+                    string where = syncfusionGrid.ToLinqWhere(dataManager.Search, dataManager.Where, args);
+                    string orderBy = syncfusionGrid.ToLinqOrderBy(dataManager.Sorted);
+                    int take = (dataManager.Skip == 0 && dataManager.Take == 0) ? AppDefaults.SyncfusionRecordsBySearch : dataManager.Take; // Excel Filtering
+                    dataResult.result = ZViewModelHelper<<%= className %>ViewModel, <%= className %>DTO, <%= className %>>.ToViewList(Application.Search(operationResult, where, args.ToArray(), orderBy, dataManager.Skip, take));
+
+                    if (dataManager.RequiresCounts)
+                    {
+                        dataResult.count = Application.Count(operationResult, where, args.ToArray());
+                    }
+                }
+                catch (Exception exception)
+                {
+                    operationResult.ParseException(exception);
+                }
+            }
+
+            if (!operationResult.Ok)
+            {
+                operationResult.ThrowException();
+            }
+
+            return Json(JsonConvert.SerializeObject(dataResult), JsonRequestBehavior.AllowGet);
+        }
+<%  if (Syncfusion == XCodeSmith.Syncfusions.EJ1) { %>
+
+        // POST: <%= className %>/ExportToExcel
+        [HttpPost]
+        public void ExportToExcel(string gridModel)
+        {
+            if (IsExport())
+            {
+                ExportToExcel(gridModel, <%= className %>Resources.EntitySingular + ".xlsx");
+            }
+        }
+
+        // POST: <%= className %>/ExportToPdf
+        [HttpPost]
+        public void ExportToPdf(string gridModel)
+        {
+            if (IsExport())
+            {
+                ExportToPdf(gridModel, <%= className %>Resources.EntitySingular + ".pdf");
+            }
+        }
+
+        // POST: <%= className %>/ExportToWord
+        [HttpPost]
+        public void ExportToWord(string gridModel)
+        {
+            if (IsExport())
+            {
+                ExportToWord(gridModel, <%= className %>Resources.EntitySingular + ".docx");
+            }
+        }
+<%  } %>
+
+        #endregion Methods Syncfusion
+    }
+}

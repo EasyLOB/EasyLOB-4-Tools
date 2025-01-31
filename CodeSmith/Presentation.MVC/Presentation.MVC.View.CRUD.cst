@@ -1,0 +1,72 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Database" Description="Table" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%
+if (SourceTable.PrimaryKey == null) {
+    throw new ApplicationException("SourceTable does not contain a primary key.");
+}
+
+string tableName = TableName(SourceTable.FullName);
+string className = ClassName(SourceTable.FullName, Culture);
+string objectName = ObjectName(SourceTable.FullName, Culture);
+%>
+@model <%= className %>ItemModel
+
+@{
+    string CSHTML = "<%= className %> - CRUD.cshtml";
+
+    string controllerAction = Model.ControllerAction.ToLower();
+    string controllerActionResource = PresentationResources.ResourceManager.GetString(Model.ControllerAction);
+
+    string documentTitle, pageTitle;
+    AppHelper.Title(out documentTitle, out pageTitle,
+        <%= className %>Resources.EntitySingular, <%= className %>Resources.EntityPlural,
+        controllerAction, controllerActionResource,
+        Model.IsMasterDetail);
+}
+
+@using (Ajax.BeginForm(Model.ControllerAction, "<%= className %>", AppHelper.AjaxOptions, new { id = "Form_<%= className %>", style = "display: none" }))
+{
+    @Html.AntiForgeryToken()
+
+    <h4>@pageTitle</h4>
+
+    <div class="@AppDefaults.CSSClassForm">
+        @{ Html.RenderPartial("_<%= className %>Item", Model); }
+    </div>
+
+    <div class="@AppDefaults.CSSClassFormButtons">
+        @Ajax.ZImageLink("Button_Cancel", Url.Action("Search", "<%= className %>"), "ZAjax", "btn z-buttonCancel", PresentationResources.Cancel)
+        @Html.ZImageInput("Button_Save", "btn z-buttonSave", PresentationResources.Save, "$('#<%= className %>_Item_IsSave').val('True');")
+        @Html.ZImageInput("Button_OK", "btn z-buttonOk", controllerActionResource)
+    </div>
+}
+
+<script>
+    $(function () {
+        try {
+            var model = @Html.Raw(JsonConvert.SerializeObject(Model));
+
+            var url = zUrlDictionaryRead("<%= className %>");
+            if (url) {
+                $("#Button_Cancel").attr("href", url);
+            }
+
+            $(document).prop("title", "@Html.Raw(documentTitle)");
+
+            zOnCRUDView(model);
+        } catch (exception) {
+            zAlert(zExceptionMessage("@CSHTML", "function", exception.message));
+        }
+    });
+</script>

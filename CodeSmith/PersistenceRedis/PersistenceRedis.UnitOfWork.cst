@@ -1,0 +1,56 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTables" Type="SchemaExplorer.TableSchemaCollection" Category="Database" Description="Tables" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+using <%= Namespace.Replace(".Persistence", ".Data") %>;
+using EasyLOB.Library;
+using EasyLOB.Persistence;
+using EasyLOB.Security;
+using ServiceStack;
+
+namespace <%= Namespace %>
+{
+    public class <%= Application %>UnitOfWorkRedis : UnitOfWorkRedis, I<%= Application %>UnitOfWork
+    {
+        #region Methods
+
+        public <%= Application %>UnitOfWorkRedis(IAuthenticationManager authenticationManager)
+            : base(ConfigurationHelper.AppSettings<string>("Redis.<%= Application %>"), authenticationManager)
+        {
+            Domain = "<%= Application %>";
+
+<%  foreach (TableSchema table in SourceTables) { %>
+            ModelConfig<<%= ClassName(table.Name, Culture) %>>.Id(x => x.<%= PropertyName(table.PrimaryKey.MemberColumns[0].Name) %>);
+<%  } %>
+
+<%  foreach (TableSchema table in SourceTables) { %>
+            Repositories.Add(typeof(<%= ClassName(table.Name, Culture) %>), new <%= Application %><%= ClassName(table.Name, Culture) %>RepositoryRedis(this));
+<%  } %>
+
+            //IRedisClient client = base.Client;
+        }
+
+        public override IGenericRepository<TEntity> GetRepository<TEntity>()
+        {
+            if (!Repositories.Keys.Contains(typeof(TEntity)))
+            {
+                var repository = new <%= Application %>GenericRepositoryRedis<TEntity>(this);
+                Repositories.Add(typeof(TEntity), repository);
+            }
+
+            return Repositories[typeof(TEntity)] as IGenericRepository<TEntity>;
+        }
+
+        #endregion Methods
+    }
+}
+

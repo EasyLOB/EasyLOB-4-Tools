@@ -1,0 +1,194 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTables" Type="SchemaExplorer.TableSchemaCollection" Category="Database" Description="Tables" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+[
+  {
+    "Text": "MenuResources.Application",
+    "Url": "/Home"
+  },
+  {
+    "Text": "MenuResources.Application",
+    "SubMenus": [
+<%   int tables = SourceTables.Count;
+     int t = 0;
+     foreach (TableSchema table in SourceTables) {
+        t++; %>
+      {
+        "Text": "<%= ClassName(table.Name, Culture) %>Resources.EntityPlural",
+        "Url": "/<%= ClassName(table.Name, Culture) %>"
+      }<%= t < tables ? "," : "" %>
+<%  } %>
+    ]
+  },
+  {
+    "Text": "MenuResources.Administration",
+    "SubMenus": [
+      {
+        "Text": "SecurityResources.Security",
+        "SubMenus": [
+          {
+            "Text": "SecurityResources.Authentication",
+            "SubMenus": [
+              {
+                "Text": "RoleResources.EntityPlural",
+                "Url": "/Role"
+              },
+              {
+                "Text": "UserResources.EntityPlural",
+                "Url": "/User"
+              },
+              {
+                "Text": "UserRoleResources.EntityPlural",
+                "Url": "/UserRole"
+              }
+            ]
+          },
+          {
+            "Text": "SecurityResources.Authorization",
+            "SubMenus": [
+              {
+                "Text": "ActivityResources.EntityPlural",
+                "Url": "/Activity"
+              },
+              {
+                "Text": "ActivityRoleResources.EntityPlural",
+                "Url": "/ActivityRole"
+              }
+            ]
+          },
+          {
+            "Text": "AuditTrailResources.AuditTrail",
+            "SubMenus": [
+              {
+                "Text": "AuditTrailConfigurationResources.EntityPlural",
+                "Url": "/AuditTrailConfiguration"
+              },
+              {
+                "Text": "AuditTrailLogResources.EntityPlural",
+                "Url": "/AuditTrailLog"
+              }
+            ]
+          },
+          {
+            "Text": "EasyLOBPresentationResources.TaskExportSecurity",
+            "Url": "/Tasks/ExportSecurity"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "Text": "MenuResources.System",
+    "SubMenus": [
+      {
+        "Text": "PresentationResources.Language",
+        "SubMenus": [
+          {
+            "Text": "English {en-US}",
+            "Url": "/Globalization/Culture?language=en&locale=US"
+          },
+          {
+            "Text": "Português {pt-BR}",
+            "Url": "/Globalization/Culture?language=pt&locale=BR"
+          }
+        ]
+      },
+      {
+        "Text": "PresentationResources.Tasks",
+        "SubMenus": [
+          {
+            "Text": "MenuResources.Application",
+            "SubMenus": [
+              {
+                "Text": "EasyLOBPresentationResources.TaskApplicationAPI",
+                "Url": "/<%= Application %>Tasks/API"
+              },
+              {
+                "Text": "EasyLOBPresentationResources.TaskApplicationHelp",
+                "Url": "/<%= Application %>Tasks/Help"
+              },
+              {
+                "Text": "EasyLOBPresentationResources.TaskApplicationStatus",
+                "Url": "/<%= Application %>Tasks/Status"
+              }
+            ]
+          },
+          {
+            "Text": "EasyLOB",
+            "SubMenus": [
+              {
+                "Text": "EasyLOBPresentationResources.TaskGlobalization",
+                "Url": "/Tasks/Globalization"
+              },
+              {
+                "Text": "Operation Result FALSE",
+                "Url": "/Tasks/OperationResultFalse"
+              },
+              {
+                "Text": "Operation Result TRUE",
+                "Url": "/Tasks/OperationResultTrue"
+              }
+            ]
+          },
+          {
+            "Text": "EasyLOBPresentationResources.TaskAPI",
+            "Url": "/Tasks/API"
+          },
+          {
+            "Text": "EasyLOBPresentationResources.TaskCleanExportImport",
+            "Url": "/Tasks/CleanExportImport"
+          },
+          {
+            "Text": "EasyLOBPresentationResources.TaskCleanLocalStorage",
+            "Url": "/Tasks/CleanLocalStorage"
+          },
+          {
+            "Text": "EasyLOBPresentationResources.TaskExportAutoMapper",
+            "Url": "/Tasks/ExportAutoMapper"
+          },
+          {
+            "Text": "EasyLOBPresentationResources.TaskExportProfile",
+            "Url": "/Tasks/ExportProfile"
+          },
+          {
+            "Text": "EasyLOBPresentationResources.TaskHelp",
+            "Url": "/Tasks/Help"
+          },
+          {
+            "Text": "NLog",
+            "Url": "/Tasks/NLog"
+          },
+          {
+            "Text": "EasyLOBPresentationResources.TaskProfileViewer",
+            "Url": "/Tasks/ProfileViewer"
+          },
+          {
+            "Text": "EasyLOBPresentationResources.TaskStatus",
+            "Url": "/Tasks/Status"
+          },
+          {
+            "Text": "EasyLOBPresentationResources.TaskUrlDictionary",
+            "Url": "/Tasks/UrlDictionary"
+          }
+        ]
+      },
+      {
+        "Text": "EasyLOBSecurityResources.ChangePassword",
+        "Url": "/Security/ChangePassword"
+      },
+      {
+        "Text": "EasyLOBSecurityResources.LogOut",
+        "Url": "/Security/Logout"
+      }
+    ]
+  }
+]

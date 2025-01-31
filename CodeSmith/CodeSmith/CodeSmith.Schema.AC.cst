@@ -1,0 +1,74 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="Text" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="SourceTables" Type="SchemaExplorer.TableSchemaCollection" Category="Database" Description="Tables" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<script runat="template">
+
+public string ColumnPK(ColumnSchema column)
+{
+    if (column.IsPrimaryKeyMember)
+	    return "PK";
+    else
+        return "--";
+}
+
+public string ColumnFK(ColumnSchema column)
+{
+    if (column.IsForeignKeyMember)
+	    return "FK";
+    else
+        return "--";
+}
+
+public string ColumnNULL(ColumnSchema column)
+{
+    if (column.AllowDBNull)
+	    return "NULL";
+    else
+        return "----";
+}
+
+public string FKTableName(TableSchema table, ColumnSchema column)
+{
+    string fkTableName = "";
+
+    foreach (TableKeySchema tableX in table.ForeignKeys)
+    {
+        foreach (ColumnSchema columnX in tableX.ForeignKeyMemberColumns)
+        {
+            if (columnX.Name == column.Name)
+            {
+                fkTableName = tableX.PrimaryKeyTable.Name.Replace("dbo", "").Replace(".","");
+                break;
+            }
+        }
+    }
+
+    return fkTableName;
+}
+
+</script>
+<%  foreach (TableSchema table in SourceTables) {
+        //if (table.HasPrimaryKey) { // 2.6
+        //if (table.PrimaryKey.MemberColumns.Count > 0) { %>
+
+<%= table.Name %>
+<%          if (table.ForeignKeys.Count > 0) { %>
+  Associations (FK)
+<%              foreach (TableKeySchema fkTable in table.ForeignKeys) { %>
+    <%= fkTable.PrimaryKeyTable.Name %> <= <%= fkTable.ForeignKeyTable.Name %>
+<%              }
+            }
+            if (table.PrimaryKeys.Count > 0) { %>
+  Collections (PK)
+<%              foreach (TableKeySchema pkTable in table.PrimaryKeys) { %>
+    <%= pkTable.ForeignKeyTable.Name %> => <%= pkTable.PrimaryKeyTable.Name %>
+
+<%              }
+            }
+        //}
+    } %>

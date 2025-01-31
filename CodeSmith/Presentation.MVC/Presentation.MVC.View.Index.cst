@@ -1,0 +1,41 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Database" Description="Table" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%
+if (SourceTable.PrimaryKey == null) {
+    throw new ApplicationException("SourceTable does not contain a primary key.");
+}
+
+string tableName = TableName(SourceTable.FullName);
+string className = ClassName(SourceTable.FullName, Culture);
+string objectName = ObjectName(SourceTable.FullName, Culture);
+%>
+@model <%= className %>CollectionModel
+
+@{
+    string CSHTML = "<%= className %> - Index.cshtml";
+}
+
+<div id="ZAjax"></div>
+
+<script>
+    $(function () {
+        try {
+            zUrlDictionaryClear();
+
+            $("#ZAjax").load("@(Url.Action(Model.OperationAction, "<%= className %>", null, Request.Url.Scheme))", function(responseText, textStatus, jqXHR) { zAjaxLoadComplete(responseText, textStatus, jqXHR); });
+        } catch (exception) {
+            zAlert(zExceptionMessage("@CSHTML", "function", exception.message));
+        }
+    });
+</script>

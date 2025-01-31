@@ -1,0 +1,60 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Database" Description="Table" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%
+if (SourceTable.PrimaryKey == null) {
+    throw new ApplicationException("SourceTable does not contain a primary key.");
+}
+      
+string tableName = TableName(SourceTable.FullName);
+string className = ClassName(SourceTable.FullName, Culture);
+string objectName = ObjectName(SourceTable.FullName, Culture);
+%>
+using <%= Application %>.Data;
+using EasyLOB;
+using EasyLOB.Mvc;
+
+namespace <%= Namespace %>
+{
+    public partial class <%= className %>ItemModel : ItemModel
+    {
+        #region Properties
+
+        public <%= className %>ViewModel <%= className %> { get; set; }
+
+        #endregion Properties
+        
+        #region Methods
+
+        public <%= className %>ItemModel()
+            : base()
+        {
+            Entity = "<%= className %>";
+            <%= className %> = new <%= className %>ViewModel();
+
+            OnConstructor();
+        }
+
+        public <%= className %>ItemModel(ZActivityOperations activityOperations, string controllerAction, string masterEntity = null, string masterKey = null, <%= className %>ViewModel <%= objectName %> = null)
+            : this()
+        {
+            ActivityOperations = activityOperations;
+            ControllerAction = controllerAction;
+            MasterEntity = masterEntity;
+            MasterKey = masterKey;
+            <%= className %> = <%= objectName %> ?? <%= className %>;
+        }
+        
+        #endregion Methods
+    }
+}

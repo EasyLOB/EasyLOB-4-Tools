@@ -1,0 +1,91 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTables" Type="SchemaExplorer.TableSchemaCollection" Category="Database" Description="Tables" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+using <%= Namespace.Replace(".Persistence", ".Data") %>;
+using System.Data.Entity;
+
+namespace <%= Namespace %>
+{
+    public partial class <%= Application %>DbContext : DbContext
+    {
+        #region Properties
+
+        //public DbSet<ModuleInfo> ModulesInfo { get; set; }
+
+<%  foreach (TableSchema table in SourceTables) { %>
+        public DbSet<<%= ClassName(table.Name, Culture) %>> <%= Plural(ClassName(table.Name, Culture), Culture) %> { get; set; }
+
+<%  } %>
+        #endregion Properties
+
+        #region Methods
+
+        static <%= Application %>DbContext()
+        {
+            /*
+            // Refer to <configuration><entityframework><contexts> section in Web.config or App.config
+            //Database.SetInitializer<<%= Application %>DbContext>(null);
+            //Database.SetInitializer<<%= Application %>DbContext>(new CreateDatabaseIfNotExists<<%= Application %>DbContext>());
+             */
+        }
+
+        public <%= Application %>DbContext()
+            : base("Name=<%= Application %>")
+        {
+            Setup();
+        }
+
+        //public <%= Application %>DbContext(string connectionString)
+        //    : base(connectionString)
+        //{
+        //    Setup();
+        //}
+
+        //public <%= Application %>DbContext(ObjectContext objectContext, bool dbContextOwnsObjectContext)
+        //    : base(objectContext, dbContextOwnsObjectContext)
+        //{
+        //    Setup();
+        //}
+
+        //public <%= Application %>DbContext(DbConnection connection)
+        //    : base(connection, false)
+        //{
+        //    Setup();
+        //}
+
+        private void Setup()
+        {
+            Configuration.LazyLoadingEnabled = false;
+            Configuration.ProxyCreationEnabled = false;
+
+            Database.Log = null;
+            //Database.Log = Console.Write;
+            //Database.Log = log => EntityFrameworkHelper.Log(log, ZLibrary.ZDatabaseLogger.File);
+            //Database.Log = log => EntityFrameworkHelper.Log(log, ZLibrary.ZDatabaseLogger.NLog);
+        }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            //modelBuilder.Entity<ModuleInfo>().Map(t =>
+            //{
+            //    t.ToTable("ModuleInfo");
+            //});
+
+<%  foreach (TableSchema table in SourceTables) { %>
+            modelBuilder.Configurations.Add(new <%= ClassName(table.Name, Culture) %>Configuration());
+<%  } %>
+        }
+
+        #endregion Methods
+    }
+}

@@ -1,0 +1,46 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="Text" Src="CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+<%@ Property Name="Output" Type="String" Category="Context" Description="Output Directory" %>
+
+<%@ Property Name="SourceTables" Type="SchemaExplorer.TableSchemaCollection" Category="Database" Description="Tables" %>
+
+<%@ Property Name="DoPersistenceLINQ2DBDataConnection" Type="Boolean" Default="False" Category="To-Do" Description="Generate Persistence :: LINQ2DB DataConnection ?" %>
+<%@ Property Name="DoPersistenceLINQ2DBGenericRepository" Type="Boolean" Default="False" Category="To-Do" Description="Generate Persistence :: LINQ2DB Generic Repository ?" %>
+<%@ Property Name="DoPersistenceLINQ2DBMap" Type="Boolean" Default="False" Category="To-Do" Description="Generate Persistence :: LINQ2DB Maps ?" %>
+<%@ Property Name="DoPersistenceLINQ2DBRepository" Type="Boolean" Default="False" Category="To-Do" Description="Generate Persistence :: LINQ2DB Repository ?" %>
+<%@ Property Name="DoPersistenceLINQ2DBUnitOfWork" Type="Boolean" Default="False" Category="To-Do" Description="Generate Persistence :: LINQ2DB Unit of Work ?" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%
+if (DoPersistenceLINQ2DBDataConnection)
+{
+    GeneratePersistenceLINQ2DBDataConnection(SourceTables, Application, Namespace, Output, Culture);
+}
+
+if (DoPersistenceLINQ2DBGenericRepository)
+{
+    GeneratePersistenceLINQ2DBGenericRepository(SourceTables, Application, Namespace, Output, Culture);
+}
+
+if (DoPersistenceLINQ2DBMap)
+{
+    GeneratePersistenceLINQ2DBMap(SourceTables, Application, Namespace, Output, Culture);
+}
+
+if (DoPersistenceLINQ2DBRepository)
+{
+    GeneratePersistenceLINQ2DBRepository(SourceTables, Application, Namespace, Output, Culture);
+}
+
+if (DoPersistenceLINQ2DBUnitOfWork)
+{
+    GeneratePersistenceLINQ2DBUnitOfWork(SourceTables, Application, Namespace, Output, Culture);
+}
+%>

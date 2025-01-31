@@ -1,0 +1,84 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Database" Description="Table" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="System.Collections" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%
+
+// Associations (FK) => Relationships FK
+// Collections (PK)  => Relationships PK
+
+if (SourceTable.PrimaryKey == null) {
+    throw new ApplicationException("SourceTable does not contain a primary key.");
+}
+
+string tableName = TableName(SourceTable.FullName);
+string className = ClassName(SourceTable.FullName, Culture);
+string objectName = ObjectName(SourceTable.FullName, Culture);
+
+string comma = "";
+int commaIndex = 0;
+
+// Associations
+
+Dictionary<string, int> associations123 = new Dictionary<string, int>();
+foreach (TableKeySchema fkTable in SourceTable.ForeignKeys) {
+    string pkClassName = ClassName(fkTable.PrimaryKeyTable.FullName, Culture);
+
+    Dictionary123(associations123, pkClassName);
+}
+%>
+using <%= Namespace.Replace(".Persistence", ".Data") %>;
+using EasyLOB;
+using EasyLOB.Data;
+using EasyLOB.Persistence;
+
+namespace <%= Namespace %>
+{
+    public class <%= Application %><%= className %>RepositoryRedis : <%= Application %>GenericRepositoryRedis<<%= className %>>
+    {
+        #region Methods
+
+        public <%= Application %><%= className %>RepositoryRedis(IUnitOfWork unitOfWork)
+            : base(unitOfWork)
+        {
+        }
+
+        public override void Join(<%= className %> <%= objectName %>)
+        {
+            if (<%= objectName %> != null)
+            {
+<%  Dictionary1(associations123);
+    foreach (TableKeySchema fkTable in SourceTable.ForeignKeys) {
+        string fkClassName = ClassName(fkTable.ForeignKeyTable.FullName, Culture);
+        ColumnSchema fkColumn = fkTable.ForeignKeyMemberColumns[0];
+        string fkPropertyName = PropertyName(fkColumn.Name);
+
+        string pkClassName = ClassName(fkTable.PrimaryKeyTable.FullName, Culture);
+        ColumnSchema pkColumn = fkTable.PrimaryKeyMemberColumns[0];
+        string pkPropertyName = PropertyName(pkColumn.Name);
+
+        string pkClassName2 = pkClassName == fkClassName ? pkClassName + "X" : pkClassName;
+
+        string x = "";
+        if (associations123.ContainsKey(pkClassName)) {
+            x = (++associations123[pkClassName]).ToString();
+        } %>
+                <%= objectName %>.<%= pkClassName2 %><%= x %> = UnitOfWork.GetRepository<<%= pkClassName %>>().GetById(<%= objectName %>.<%= fkPropertyName %>);
+<%  } %>
+            }
+        }
+
+        #endregion Methods
+    }
+}

@@ -1,0 +1,37 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTables" Type="SchemaExplorer.TableSchemaCollection" Category="Database" Description="Tables" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+using <%= Application %>.Data;
+using System;
+
+namespace EasyLOB
+{
+    public static partial class ShellHelper
+    {
+        private static void AutoMapper<%= Application %>Demo()
+        {
+            Console.WriteLine("\nAutoMapper <%= Application %> Demo\n");
+<%  foreach (TableSchema SourceTable in SourceTables) {
+        string tableName = TableName(SourceTable.FullName);
+        string className = ClassName(SourceTable.FullName, Culture);
+        string objectName = ObjectName(SourceTable.FullName, Culture); %>
+
+            {
+                Console.WriteLine("<%= className %>");
+                <%= className %> data = new <%= className %>();
+                <%= className %>DTO dto = EasyLOBHelper.Mapper.Map<<%= className %>DTO>(data);
+                data = EasyLOBHelper.Mapper.Map<<%= className %>>(dto);
+            }
+<%  } %>
+        }
+    }
+}

@@ -1,0 +1,152 @@
+﻿<%@ CodeTemplate Language="C#" TargetLanguage="C#" Src="..\CodeSmithHelper.cs" Inherits="XCodeSmith.CodeSmithHelper" Debug="False" Description="" %>
+
+<%@ Property Name="Application" Type="String" Category="Application" Description="Application" %>
+<%@ Property Name="Namespace" Type="String" Category="Application" Description="Namespace [using Application.*]" %>
+
+<%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Context" Description="Culture for Plural Rules" %>
+
+<%@ Property Name="SourceTable" Type="SchemaExplorer.TableSchema" Category="Database" Description="Table" %>
+
+<%@ Assembly Name="SchemaExplorer" %>
+<%@ Assembly Name="System.Data" %>
+<%@ Assembly Name="System.Collections" %>
+<%@ Import Namespace="SchemaExplorer" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.Collections.Generic" %>
+<%
+if (SourceTable.PrimaryKey == null) {
+    throw new ApplicationException("SourceTable does not contain a primary key.");
+}
+
+string tableName = TableName(SourceTable.FullName);
+string className = ClassName(SourceTable.FullName, Culture);
+string objectName = ObjectName(SourceTable.FullName, Culture);
+
+bool isDataAnnotations = true; // Visual Studio Scaffolding or HTML Helpers
+
+int commaParameters = 0;
+foreach (ColumnSchema column in SourceTable.PrimaryKey.MemberColumns) {
+    commaParameters++;
+}
+foreach (ColumnSchema column in SourceTable.NonPrimaryKeyColumns) {
+    if (!column.AllowDBNull) {
+        commaParameters++;
+    }
+}
+foreach (ColumnSchema column in SourceTable.NonPrimaryKeyColumns) {
+    if (column.AllowDBNull) {   
+        commaParameters++;
+    }    
+}
+
+// Associations
+
+Dictionary<string, int> associations123 = new Dictionary<string, int>();
+foreach (TableKeySchema fkTable in SourceTable.ForeignKeys) {
+    string pkClassName = ClassName(fkTable.PrimaryKeyTable.FullName, Culture);            
+    
+    Dictionary123(associations123, pkClassName);
+}
+%>
+using <%= Application %>.Data.Resources;
+using EasyLOB;
+using EasyLOB.Data;
+using EasyLOB.Library;
+using EasyLOB.Resources;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
+namespace <%= Application %>.Data
+{
+    public partial class <%= className %>ViewModel : ZViewModel<<%= className %>ViewModel, <%= className %>>
+    {
+        #region Properties
+<%  int pkIndex = 1;
+    foreach (ColumnSchema column in SourceTable.Columns) {
+        //bool isPrimaryKey = column.IsPrimaryKeyMember;
+        //bool isIdentity = IsIdentity(SourceTable.PrimaryKey.MemberColumns[0]);
+        bool isNullable = column.AllowDBNull; %>
+
+<%      if (isDataAnnotations) { %>
+        [Display(Name = "Property<%= PropertyName(column.Name) %>", ResourceType = typeof(<%= className %>Resources))]
+<%      }
+        if (isDataAnnotations) {
+            if (IsDate(column.DataType)) { %>
+        //[DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:d}", ApplyFormatInEditMode = true)]
+<%          } else if (IsDateTime(column.DataType)) { %>
+        //[DataType(DataType.DateTime)]
+        [DisplayFormat(DataFormatString = "{0:G}", ApplyFormatInEditMode = true)]
+<%          } else if (IsDecimal(column.DataType) || IsFloat(column.DataType)) { %>
+        [DisplayFormat(DataFormatString = "{0:f2}", ApplyFormatInEditMode = true)]
+<%          } else if (IsInteger(column.DataType)) { %>
+        [DisplayFormat(DataFormatString = "{0:d}", ApplyFormatInEditMode = true)]
+<%          }
+        }
+        if (isDataAnnotations && column.IsPrimaryKeyMember) { %>
+        //[Key]
+<%      }
+        if (isDataAnnotations && column.IsPrimaryKeyMember && SourceTable.PrimaryKey.MemberColumns.Count > 1) { %>
+        //[Column(Order=<%= pkIndex++.ToString() %>)]
+<%      }
+        if (isDataAnnotations && column.IsForeignKeyMember && IsInteger(column.DataType) && !isNullable) { %>
+        [Range(1, System.Int32.MaxValue, ErrorMessageResourceName = "Range", ErrorMessageResourceType = typeof(DataAnnotationResources))]
+<%      }
+        if (isDataAnnotations && !isNullable) { %>
+        [Required]
+<%      }
+        if (isDataAnnotations && IsString(column.DataType)) {
+            string stringLength = column.Size.ToString();
+            if (column.Size == -1 || IsNText(column) || IsText(column)) {
+                stringLength = 1024.ToString();
+            } else if (IsImage(column)) {
+                stringLength = 8192.ToString();
+            } %>
+        [StringLength(<%= stringLength %>)]
+<%      } %>
+        public virtual <%= GetType(column) %> <%= PropertyName(column.Name) %> { get; set; }
+<%  } %>
+
+        #endregion Properties
+<%  if (SourceTable.ForeignKeys.Count > 0) { %>
+
+        #region Associations (FK)
+<%      Dictionary1(associations123);
+        foreach (TableKeySchema fkTable in SourceTable.ForeignKeys) {
+            string fkClassName = ClassName(fkTable.ForeignKeyTable.FullName, Culture);
+            ColumnSchema fkColumn = fkTable.ForeignKeyMemberColumns[0];
+            string fkPropertyName = PropertyName(fkColumn.Name);
+            
+            string pkClassName = ClassName(fkTable.PrimaryKeyTable.FullName, Culture);            
+            ColumnSchema pkColumn = fkTable.PrimaryKeyMemberColumns[0];
+            string pkPropertyName = PropertyName(pkColumn.Name);
+            
+            string pkClassName2 = pkClassName == className ? pkClassName + "X" : pkClassName;
+            
+            string x = "";
+            if (associations123.ContainsKey(pkClassName)) {
+                x = (++associations123[pkClassName]).ToString();
+            } %>
+
+        public virtual string <%= pkClassName2 %><%= x %>LookupText { get; set; } // <%= fkPropertyName %>
+<%      } %>
+
+        #endregion Associations (FK)
+<%  } %>
+
+        #region Methods
+        
+        public <%= className %>ViewModel()
+        {
+            OnConstructor();
+        }
+
+        public <%= className %>ViewModel(IZDataModel dataModel)
+        {
+            FromData(dataModel);
+        }
+
+        #endregion Methods
+    }
+}
