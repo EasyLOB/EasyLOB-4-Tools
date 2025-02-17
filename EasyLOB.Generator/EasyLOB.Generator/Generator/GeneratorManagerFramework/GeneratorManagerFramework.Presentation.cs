@@ -2322,7 +2322,7 @@ namespace {Application}.Data
                 }
 
                 file.WriteLine($@"}}
-    
+
 <div id=""Item_{className}"">
     @Html.ValidationSummary(false, """", new {{ @class = ""text-danger"" }})
 

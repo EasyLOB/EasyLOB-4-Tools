@@ -165,10 +165,9 @@ foreach (TableKeySchema primaryKey in SourceTable.PrimaryKeys) {
             if (collections123.ContainsKey(pkClassName)) {
                 x = (++collections123[pkClassName]).ToString();
             } %>
-            data.Add().ID("TabSheet_<%= className %>_<%= Plural(pkClassName, Culture) %><%= x %>">").Text(<%= pkClassName %>Resources.EntityPlural).ContentTemplate(@<div class="@AppDefaults.CSSClassPanel">
-                <div id="Ajax_<%= className %>_<%= Plural(pkClassName, Culture) %><%= x %>">"></div>
+            data.Add().ID("TabSheet_<%= className %>_<%= Plural(pkClassName, Culture) %><%= x %>").Text(<%= pkClassName %>Resources.EntityPlural).ContentTemplate(@<div class="@AppDefaults.CSSClassPanel">
+                <div id="Ajax_<%= className %>_<%= Plural(pkClassName, Culture) %><%= x %>"></div>
             </div>);
-
 <%          index++;
         }
     } %>
