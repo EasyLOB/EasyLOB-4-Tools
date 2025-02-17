@@ -2108,24 +2108,12 @@ namespace {Application}.Data
                         string x = "";
                         if (collections123.ContainsKey(pkClassName))
                         {
-                            if (++collections123[pkClassName] > 1)
-                            {
-                                x = "@*";
-                            }
-                        }
-                        if (x == "@*")
-                        {
-                            file.WriteLine($@"            @*");
+                            x = (++collections123[pkClassName]).ToString();
                         }
 
-                        file.WriteLine($@"            data.Add().ID(""TabSheet_{className}_{Plural(pkClassName, Culture)}"").Text({pkClassName}Resources.EntityPlural).ContentTemplate(@<div class=""@AppDefaults.CSSClassPanel"">
-                <div id=""Ajax_{className}_{Plural(pkClassName, Culture)}""></div>
+                        file.WriteLine($@"            data.Add().ID(""TabSheet_{className}_{Plural(pkClassName, Culture)}{x}"").Text({pkClassName}Resources.EntityPlural).ContentTemplate(@<div class=""@AppDefaults.CSSClassPanel"">
+                <div id=""Ajax_{className}_{Plural(pkClassName, Culture)}{x}""></div>
             </div>);");
-
-                        if (x == "@*")
-                        {
-                            file.WriteLine($@"            *@");
-                        }
 
                         index++;
                     }
@@ -2168,16 +2156,13 @@ namespace {Application}.Data
                         string x = "";
                         if (associations123.ContainsKey(pkClassName))
                         {
-                            if (++associations123[pkClassName] > 1)
-                            {
-                                x = "//";
-                            }
+                            x = (++associations123[pkClassName]).ToString();
                         }
 
-                        file.WriteLine($@"                {x}case ""{pkClassName}"":
-                {x}    $(""#{fkClassName}_{fkPropertyName}"").val(model.MasterKey);
-                {x}    $(""#Group_{fkClassName}_{fkPropertyName}"").hide();
-                {x}    break;");
+                        file.WriteLine($@"                case ""{pkClassName}{x}"":
+                    $(""#{fkClassName}_{fkPropertyName}"").val(model.MasterKey);
+                    $(""#Group_{fkClassName}_{fkPropertyName}"").hide();
+                    break;");
                     }
 
                     file.WriteLine($@"            }}");
@@ -2199,17 +2184,14 @@ namespace {Application}.Data
                         string x = "";
                         if (collections123.ContainsKey(pkClassName))
                         {
-                            if (++collections123[pkClassName] > 1)
-                            {
-                                x = "//";
-                            }
+                            x = (++collections123[pkClassName]).ToString();
                         }
 
-                        file.WriteLine($@"            {x}if (controllerAction != ""create"" && zContains(profile.EditCollections, ""{Plural(pkClassName, Culture)}"")) {{
-            {x}    zUrlDictionaryWrite(""{pkClassName}"", ""@Context.Request.Url.AbsoluteUri"");
-            {x}    var ajaxUrl = ""@(Html.Raw(Url.Action(""Search"", ""{pkClassName}"", new {{ MasterControllerAction = Model.ControllerAction, MasterEntity = ""{className}"", MasterKey = Model.{className}.{fkPropertyName} }})))"";
-            {x}    zAjaxLoadSync(""Ajax_{className}_{Plural(pkClassName, Culture)}"", ajaxUrl);
-            {x}}}");
+                        file.WriteLine($@"            if (controllerAction != ""create"" && zContains(profile.EditCollections, ""{Plural(pkClassName, Culture)}{x}"")) {{
+                zUrlDictionaryWrite(""{pkClassName}"", ""@Context.Request.Url.AbsoluteUri"");
+                var ajaxUrl = ""@(Html.Raw(Url.Action(""Search"", ""{pkClassName}"", new {{ MasterControllerAction = Model.ControllerAction, MasterEntity = ""{className}{x}"", MasterKey = Model.{className}.{fkPropertyName} }})))"";
+                zAjaxLoadSync(""Ajax_{className}_{Plural(pkClassName, Culture)}{x}"", ajaxUrl);
+            }}");
 
                         index++;
                     }
@@ -2240,15 +2222,12 @@ namespace {Application}.Data
                         string x = "";
                         if (collections123.ContainsKey(pkClassName))
                         {
-                            if (++collections123[pkClassName] > 1)
-                            {
-                                x = "//";
-                            }
+                            x = (++collections123[pkClassName]).ToString();
                         }
 
-                        file.WriteLine($@"                {x}case ""TabSheet_{className}_{Plural(pkClassName, Culture)}"":
-                {x}    zGridDataSource(""Grid_{pkClassName}"", ""@Url.Action(""DataSource"", ""{pkClassName}"")"");
-                {x}    break;");
+                        file.WriteLine($@"                case ""TabSheet_{className}_{Plural(pkClassName, Culture)}{x}"":
+                    zGridDataSource(""Grid_{pkClassName}{x}"", ""@Url.Action(""DataSource"", ""{pkClassName}"")"");
+                    break;");
                     }
 
                     file.WriteLine($@"            }}");
@@ -2500,28 +2479,14 @@ namespace {Application}.Data
                         string x = "";
                         if (collections123.ContainsKey(pkClassName))
                         {
-                            if (++collections123[pkClassName] > 1)
-                            {
-                                x = "@*";
-                            }
-                        }
-                        if (x == "@*")
-                        {
-                            file.WriteLine($@"                @*");
+                            x = (++collections123[pkClassName]).ToString();
                         }
 
-                        file.WriteLine($@"            <div data-easylob-id=""TabItem_{className}_{Plural(pkClassName, Culture)}"">
+                        file.WriteLine($@"            <div data-easylob-id=""TabItem_{className}_{Plural(pkClassName, Culture)}{x}"">
                 <div class=""@AppDefaults.CSSClassTabItem"">
-
-                    <div id=""Ajax_{className}_{Plural(pkClassName, Culture)}""></div>
-
+                    <div id=""Ajax_{className}_{Plural(pkClassName, Culture)}{x}""></div>
                 </div>
             </div>");
-
-                        if (x == "@*")
-                        {
-                            file.WriteLine($@"            *@");
-                        }
 
                         index++;
                     }
@@ -2568,16 +2533,13 @@ namespace {Application}.Data
                         string x = "";
                         if (associations123.ContainsKey(pkClassName))
                         {
-                            if (++associations123[pkClassName] > 1)
-                            {
-                                x = "//";
-                            }
+                            x = (++associations123[pkClassName]).ToString();
                         }
 
-                        file.WriteLine($@"                {x}case ""{pkClassName}"":
-                {x}    $(""#{fkClassName}_{fkPropertyName}"").val(model.MasterKey);
-                {x}    $(""#Group_{fkClassName}_{fkPropertyName}"").hide();
-                {x}    break;");
+                        file.WriteLine($@"                case ""{pkClassName}{x}"":
+                    $(""#{fkClassName}_{fkPropertyName}"").val(model.MasterKey);
+                    $(""#Group_{fkClassName}_{fkPropertyName}"").hide();
+                    break;");
                     }
 
                     file.WriteLine($@"            }}");
@@ -2599,17 +2561,14 @@ namespace {Application}.Data
                         string x = "";
                         if (collections123.ContainsKey(pkClassName))
                         {
-                            if (++collections123[pkClassName] > 1)
-                            {
-                                x = "//";
-                            }
+                            x = (++collections123[pkClassName]).ToString();
                         }
 
-                        file.WriteLine($@"            {x}if (controllerAction != ""create"" && zContains(profile.EditCollections, ""{Plural(pkClassName, Culture)}"")) {{
-            {x}    zUrlDictionaryWrite(""{pkClassName}"", ""@Context.Request.Url.AbsoluteUri"");
-            {x}    var ajaxUrl = ""@(Html.Raw(Url.Action(""Search"", ""{pkClassName}"", new {{ MasterControllerAction = Model.ControllerAction, MasterEntity = ""{className}"", MasterKey = Model.{className}.{fkPropertyName} }})))"";
-            {x}    zAjaxLoadSync(""Ajax_{className}_{Plural(pkClassName, Culture)}"", ajaxUrl);
-            {x}}}");
+                        file.WriteLine($@"            if (controllerAction != ""create"" && zContains(profile.EditCollections, ""{Plural(pkClassName, Culture)}{x}"")) {{
+                zUrlDictionaryWrite(""{pkClassName}"", ""@Context.Request.Url.AbsoluteUri"");
+                var ajaxUrl = ""@(Html.Raw(Url.Action(""Search"", ""{pkClassName}"", new {{ MasterControllerAction = Model.ControllerAction, MasterEntity = ""{className}{x}"", MasterKey = Model.{className}.{fkPropertyName} }})))"";
+                zAjaxLoadSync(""Ajax_{className}_{Plural(pkClassName, Culture)}{x}"", ajaxUrl);
+            }}");
 
                         index++;
                     }
@@ -2637,15 +2596,12 @@ namespace {Application}.Data
                     string x = "";
                     if (collections123.ContainsKey(pkClassName))
                     {
-                        if (++collections123[pkClassName] > 1)
-                        {
-                            x = "//";
-                        }
+                        x = (++collections123[pkClassName]).ToString();
                     }
 
-                    file.WriteLine($@"                {x}case ""{Plural(pkClassName, Culture)}"":
-                {x}    zGridDataSource(""Grid_{pkClassName}"", ""@Url.Action(""DataSource"", ""{pkClassName}"")"");
-                {x}    break;");
+                    file.WriteLine($@"                case ""{Plural(pkClassName, Culture)}{x}"":
+                    zGridDataSource(""Grid_{pkClassName}{x}"", ""@Url.Action(""DataSource"", ""{pkClassName}"")"");
+                    break;");
                 }
 
                 file.WriteLine($@"            }}

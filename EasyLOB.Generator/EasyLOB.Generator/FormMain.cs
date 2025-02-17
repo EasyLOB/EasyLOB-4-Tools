@@ -85,6 +85,9 @@ namespace EasyLOB.Generator
                     txtFilesConnectionString.Text = connectionString;
                 }
                 txtFilesApplication.Text = ConfigurationManager.AppSettings["FilesApplication"];
+                cbbCulture.SelectedItem = ConfigurationManager.AppSettings["FilesCulture"];
+                cbbSyncfusion.SelectedItem = ConfigurationManager.AppSettings["FilesSyncfusion"];
+                cbbArchetype.SelectedItem = ConfigurationManager.AppSettings["FilesArchetype"];
                 txtFilesNamespaceData.Text = ConfigurationManager.AppSettings["FilesNamespaceData"];
                 txtFilesNamespacePresentation.Text = ConfigurationManager.AppSettings["FilesNamespacePresentation"];
                 txtFilesNamespacePersistence.Text = ConfigurationManager.AppSettings["FilesNamespacePersistence"];
@@ -104,6 +107,9 @@ namespace EasyLOB.Generator
                 config.AppSettings.Settings["FilesDirectory"].Value = txtFilesDirectory.Text;
                 config.AppSettings.Settings["FilesConnectionString"].Value = txtFilesConnectionString.Text;
                 config.AppSettings.Settings["FilesApplication"].Value = txtFilesApplication.Text;
+                config.AppSettings.Settings["FilesCulture"].Value = (string)cbbCulture.SelectedItem;
+                config.AppSettings.Settings["FilesSyncfusion"].Value = (string)cbbSyncfusion.SelectedItem;
+                config.AppSettings.Settings["FilesArchetype"].Value = (string)cbbArchetype.SelectedItem;
                 config.AppSettings.Settings["FilesNamespaceData"].Value = txtFilesNamespaceData.Text;
                 config.AppSettings.Settings["FilesNamespacePresentation"].Value = txtFilesNamespacePresentation.Text;
                 config.AppSettings.Settings["FilesNamespacePersistence"].Value = txtFilesNamespacePersistence.Text;

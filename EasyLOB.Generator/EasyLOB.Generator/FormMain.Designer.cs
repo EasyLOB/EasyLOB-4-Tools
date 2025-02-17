@@ -292,7 +292,7 @@
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(96, 16);
             this.label5.TabIndex = 41;
-            this.label5.Text = "[ 5 ] Syncfusion";
+            this.label5.Text = "[ 6 ] Syncfusion";
             // 
             // cbbSyncfusion
             // 
@@ -649,9 +649,9 @@
             this.lblArchetype.AutoSize = true;
             this.lblArchetype.Location = new System.Drawing.Point(824, 15);
             this.lblArchetype.Name = "lblArchetype";
-            this.lblArchetype.Size = new System.Drawing.Size(92, 16);
+            this.lblArchetype.Size = new System.Drawing.Size(82, 16);
             this.lblArchetype.TabIndex = 39;
-            this.lblArchetype.Text = "[ 5 ] Archetype";
+            this.lblArchetype.Text = "[ ] Archetype";
             // 
             // label11
             // 

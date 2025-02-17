@@ -202,25 +202,17 @@ foreach (TableKeySchema primaryKey in SourceTable.PrimaryKeys) {
 
             string x = "";
             if (collections123.ContainsKey(pkClassName)) {
-                if (++collections123[pkClassName] > 1) {
-                    x = "@*";
-                }
-            }
-            if (x == "@*") { %>
-            @*
-<%          } %>
-            <div data-easylob-id="TabItem_<%= className %>_<%= Plural(pkClassName, Culture) %>">
+                x = (++collections123[pkClassName]).ToString();
+            } %>
+            <div data-easylob-id="TabItem_<%= className %>_<%= Plural(pkClassName, Culture) %><%= x %>">
                 <div class="@AppDefaults.CSSClassTabItem">
 
-                    <div id="Ajax_<%= className %>_<%= Plural(pkClassName, Culture) %>"></div>
+                    <div id="Ajax_<%= className %>_<%= Plural(pkClassName, Culture) %><%= x %>"></div>
 
                 </div>
             </div>
-<%          if (x == "@*") { %>
-            *@
-<%          }
 
-            index++;
+<%          index++;
         }
     } %>
         </div>
@@ -259,14 +251,12 @@ foreach (TableKeySchema primaryKey in SourceTable.PrimaryKeys) {
 
             string x = "";
             if (associations123.ContainsKey(pkClassName)) {
-                if (++associations123[pkClassName] > 1) {
-                    x = "//";
-                }
+                x = (++associations123[pkClassName]).ToString();
             } %>
-                <%= x %>case "<%= pkClassName %>":
-                <%= x %>    $("#<%= fkClassName %>_<%= fkPropertyName %>").val(model.MasterKey);
-                <%= x %>    $("#Group_<%= fkClassName %>_<%= fkPropertyName %>").hide();
-                <%= x %>    break;
+                case "<%= pkClassName %><%= x %>":
+                    $("#<%= fkClassName %>_<%= fkPropertyName %>").val(model.MasterKey);
+                    $("#Group_<%= fkClassName %>_<%= fkPropertyName %>").hide();
+                    break;
 <%      } %>
             }
 <%  } %>
@@ -282,15 +272,13 @@ foreach (TableKeySchema primaryKey in SourceTable.PrimaryKeys) {
 
             string x = "";
             if (collections123.ContainsKey(pkClassName)) {
-                if (++collections123[pkClassName] > 1) {
-                    x = "//";
-                }
+                x = (++collections123[pkClassName]).ToString();
             } %>
-            <%= x %>if (controllerAction != "create" && zContains(profile.EditCollections, "<%= Plural(pkClassName, Culture) %>")) {
-            <%= x %>    zUrlDictionaryWrite("<%= pkClassName %>", "@Context.Request.Url.AbsoluteUri");
-            <%= x %>    var ajaxUrl = "@(Html.Raw(Url.Action("Search", "<%= pkClassName %>", new { MasterControllerAction = Model.ControllerAction, MasterEntity = "<%= className %>", MasterKey = Model.<%= className %>.<%= fkPropertyName %> })))";
-            <%= x %>    zAjaxLoadSync("Ajax_<%= className %>_<%= Plural(pkClassName, Culture) %>", ajaxUrl);
-            <%= x %>}
+            if (controllerAction != "create" && zContains(profile.EditCollections, "<%= Plural(pkClassName, Culture) %><%= x %>")) {
+                zUrlDictionaryWrite("<%= pkClassName %>", "@Context.Request.Url.AbsoluteUri");
+                var ajaxUrl = "@(Html.Raw(Url.Action("Search", "<%= pkClassName %>", new { MasterControllerAction = Model.ControllerAction, MasterEntity = "<%= className %><%= x %>", MasterKey = Model.<%= className %>.<%= fkPropertyName %> })))";
+                zAjaxLoadSync("Ajax_<%= className %>_<%= Plural(pkClassName, Culture) %><%= x %>", ajaxUrl);
+            }
 <%          index++;
         }
     } %>
@@ -313,13 +301,11 @@ foreach (TableKeySchema primaryKey in SourceTable.PrimaryKeys) {
 
             string x = "";
             if (collections123.ContainsKey(pkClassName)) {
-                if (++collections123[pkClassName] > 1) {
-                    x = "//";
-                }
+                x = (++collections123[pkClassName]).ToString();
             } %>
-                <%= x %>case "<%= Plural(pkClassName, Culture) %>":
-                <%= x %>    zGridDataSource("Grid_<%= pkClassName %>", "@Url.Action("DataSource", "<%= pkClassName %>")");
-                <%= x %>    break;
+                case "<%= Plural(pkClassName, Culture) %><%= x %>":
+                    zGridDataSource("Grid_<%= pkClassName %><%= x %>", "@Url.Action("DataSource", "<%= pkClassName %>")");
+                    break;
 <%      } %>
             }
         } catch (exception) {
