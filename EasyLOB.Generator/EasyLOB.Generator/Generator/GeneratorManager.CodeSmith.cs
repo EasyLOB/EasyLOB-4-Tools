@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -433,20 +434,20 @@ namespace Generator
 
         public string ClassLabel(string name)
         {
-            return ClassLabel(name, false);
+            return ClassLabel(UnderscoreToPascalCase(name), false);
         }
 
         public string ClassLabel(string name, bool isLower)
         {
             bool isUnderscore = false;
-            return ClassWords(name, isLower, ref isUnderscore);
+            return ClassWords(UnderscoreToPascalCase(name), isLower, ref isUnderscore);
         }
 
         public string ClassName(string name, Cultures culture)
         {
             bool isLower = false;
             bool isUnderscore = false;
-            string result = ClassWords(name, isLower, ref isUnderscore);
+            string result = ClassWords(UnderscoreToPascalCase(name), isLower, ref isUnderscore);
             /*
             if (isUnderscore)
             {
@@ -464,7 +465,7 @@ namespace Generator
         {
             bool isLower = true;
             bool isUnderscore = false;
-            string result = ClassWords(name, isLower, ref isUnderscore);
+            string result = ClassWords(UnderscoreToPascalCase(name), isLower, ref isUnderscore);
             /*
             if (isUnderscore)
             {
@@ -561,20 +562,20 @@ namespace Generator
 
         public string PropertyLabel(string name)
         {
-            return PropertyLabel(name, false);
+            return PropertyLabel(UnderscoreToPascalCase(name), false);
         }
 
         public string PropertyLabel(string name, bool isLower)
         {
             bool isUnderscore = false;
-            return PropertyWords(name, isLower, ref isUnderscore);
+            return PropertyWords(UnderscoreToPascalCase(name), isLower, ref isUnderscore);
         }
 
         public string PropertyName(string name)
         {
             bool isLower = false;
             bool isUnderscore = false;
-            string result = PropertyWords(name, isLower, ref isUnderscore);
+            string result = PropertyWords(UnderscoreToPascalCase(name), isLower, ref isUnderscore);
             /*
             if (isUnderscore)
             {
@@ -675,6 +676,21 @@ namespace Generator
             }
 
             return result;
+        }
+
+        public string UnderscoreToPascalCase(string input)
+        {
+            if (string.IsNullOrEmpty(input) || !input.Contains("_"))
+                return input;
+
+            string[] words = input.Split('_');
+            TextInfo textInfo = CultureInfo.InvariantCulture.TextInfo;
+            for (int i = 0; i < words.Length; i++)
+            {
+                words[i] = textInfo.ToTitleCase(words[i]);
+            }
+
+            return string.Join("", words);
         }
 
         #endregion
