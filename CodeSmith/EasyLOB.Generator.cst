@@ -5,6 +5,7 @@
 <%@ Property Name="Archetype" Type="XCodeSmith.Archetypes" Category="Code" Description="Controllers Archetype" %>
 <%@ Property Name="Culture" Type="XCodeSmith.Cultures" Category="Code" Description="Culture for Plural Rules" %>
 <%@ Property Name="Output" Type="String" Category="Code" Description="Output Directory" %>
+<%@ Property Name="Syncfusion" Type="XCodeSmith.Syncfusions" Category="Context" Description="Syncfusion Components" %>
 
 <%@ Property Name="SourceTables" Type="SchemaExplorer.TableSchemaCollection" Category="Database" Description="Tables" %>
 
@@ -24,16 +25,16 @@ GenerateDataResource(SourceTables, Application, Namespace, Output, Culture);
 
 // Persistence
 
-Namespace = Application + ".Persistence";
-GeneratePersistence(SourceTables, Application, Namespace, Output, Culture);
+//Namespace = Application + ".Persistence";
+//GeneratePersistence(SourceTables, Application, Namespace, Output, Culture);
 
 // Persistence - EntityFramework
 
 Namespace = Application + ".Persistence";
 GeneratePersistenceEntityFrameworkConfiguration(SourceTables, Application, Namespace, Output, Culture);
 GeneratePersistenceEntityFrameworkDbContext(SourceTables, Application, Namespace, Output, Culture);
-GeneratePersistenceEntityFrameworkGenericRepository(SourceTables, Application, Namespace, Output, Culture);
-GeneratePersistenceEntityFrameworkUnitOfWork(SourceTables, Application, Namespace, Output, Culture);
+//GeneratePersistenceEntityFrameworkGenericRepository(SourceTables, Application, Namespace, Output, Culture);
+//GeneratePersistenceEntityFrameworkUnitOfWork(SourceTables, Application, Namespace, Output, Culture);
 
 // Persistence - LINQ2DB
 
@@ -70,12 +71,12 @@ GeneratePersistenceEntityFrameworkUnitOfWork(SourceTables, Application, Namespac
 
 // Application
 
-Namespace = Application + ".Application";
-GenerateApplication(SourceTables, Application, Namespace, Output, Culture);
+//Namespace = Application + ".Application";
+//GenerateApplication(SourceTables, Application, Namespace, Output, Culture);
 
 // Service - Web API
 
-Namespace = Application + ".Mvc";
+Namespace = Application + ".WebApi";
 GenerateServiceWebApiController(SourceTables, Application, Namespace, Output, Culture, Archetype);
 
 // Presentation - MVC
@@ -84,16 +85,17 @@ Namespace = Application + ".Mvc";
 GeneratePresentationCollectionModel(SourceTables, Application, Namespace, Output, Culture);
 GeneratePresentationItemModel(SourceTables, Application, Namespace, Output, Culture);
 GeneratePresentationViewModel(SourceTables, Application, Namespace, Output, Culture, Archetype);
-GeneratePresentationMvcController(SourceTables, Application, Namespace, Output, Culture, Archetype);
+GeneratePresentationViewModelProfile(SourceTables, Application, Namespace, Output, Culture);
+GeneratePresentationMvcController(SourceTables, Application, Namespace, Output, Culture, Archetype, Syncfusion);
 GeneratePresentationMvcMenu(SourceTables, Application, Namespace, Output, Culture);
-GeneratePresentationMvcView(SourceTables, Application, Namespace, Output, Culture);
-GeneratePresentationMvcPartialView(SourceTables, Application, Namespace, Output, Culture,
-    "/Presentation.MVC/Presentation.MVC.PartialView._Collection.cst",
+GeneratePresentationMvcView(SourceTables, Application, Namespace, Output, Culture, Syncfusion);
+GeneratePresentationMvcPartialView(SourceTables, Application, Namespace, Output, Culture, Syncfusion,
+    "Presentation.MVC.PartialView._Collection.cst",
     "Collection.cshtml");
-GeneratePresentationMvcPartialView(SourceTables, Application, Namespace, Output, Culture,
-    "/Presentation.MVC/Presentation.MVC.PartialView._Item.cst",
+GeneratePresentationMvcPartialView(SourceTables, Application, Namespace, Output, Culture, Syncfusion,
+    "Presentation.MVC.PartialView._Item.cst",
     "Item.cshtml");
-GeneratePresentationMvcPartialView(SourceTables, Application, Namespace, Output, Culture,
-    "/Presentation.MVC/Presentation.MVC.PartialView._Lookup.cst",
+GeneratePresentationMvcPartialView(SourceTables, Application, Namespace, Output, Culture, Syncfusion,
+    "Presentation.MVC.PartialView._Lookup.cst",
     "Lookup.cshtml");
 %>

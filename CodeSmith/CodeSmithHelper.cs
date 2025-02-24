@@ -136,16 +136,6 @@ namespace XCodeSmith
             }
         }
 
-        // Use PascalCase and camelCase conventions to rename Classes and Properties ?
-        // true  :: Customer => Customer | customer => Customer
-        // false :: Customer => Customer | customer => customer
-        private bool UseCase { get { return true; } }
-
-        // Ignore UNDERSCORE in Tables and Columns names BEFORE generating C# identifiers ?
-        // true  :: Client_Address => ClientAddress
-        // false  :: Client_Address => Client_Address
-        private bool IgnoreUnderscore { get { return true; } }
-
         #endregion
 
         #region Methods
@@ -1705,90 +1695,41 @@ namespace XCodeSmith
 
         public string TableName(string name)
         {
-            if (UseCase)
-            {
-                return name.Replace("dbo.", "");
-            }
-            else
-            {
-                return name.Replace("dbo.", "");
-            }
+            return name.Replace("dbo.", "");
         }
 
         public string TableAlias(string name)
         {
-            if (UseCase)
-            {
-                return TableName(name).Replace(".", "_");
-            }
-            else
-            {
-                return TableName(name).Replace(".", "_");
-            }
+            return TableName(name).Replace(".", "_");
         }
 
         public string ColumnName(string name)
         {
-            if (UseCase)
-            {
-                return name;
-            }
-            else
-            {
-                return name;
-            }
+            return name;
         }
 
         // Class
 
         public string ClassLabel(string name)
         {
-            return ClassLabel(UnderscoreToPascalCase(name), false);
-        }
-
-        public string ClassLabel(string name, bool isLower)
-        {
-            bool isUnderscore = false;
-            return ClassWords(UnderscoreToPascalCase(name), isLower, ref isUnderscore);
+            return ClassWords(UnderscoreToPascalCase(name));
         }
 
         public string ClassName(string name, Cultures culture)
         {
-            bool isLower = false;
-            bool isUnderscore = false;
-            string result = ClassWords(UnderscoreToPascalCase(name), isLower, ref isUnderscore);
-            /*
-            if (isUnderscore)
-            {
-                return Singular(result.Replace(" ", "_"), culture); // Singular
-            }
-            else
-            {
-                return Singular(result.Replace(" ", ""), culture); // Singular
-            }
-             */
+            string result = ClassWords(UnderscoreToPascalCase(name));
+
             return Singular(result.Replace(" ", ""), culture); // Singular
         }
 
         public string ObjectName(string name, Cultures culture)
         {
-            bool isLower = true;
-            bool isUnderscore = false;
-            string result = ClassWords(UnderscoreToPascalCase(name), isLower, ref isUnderscore);
-            /*
-            if (isUnderscore)
-            {
-                return Singular(result.Replace(" ", "_"), culture); // Singular
-            }
-            else
-            {
-                return Singular(result.Replace(" ", ""), culture); // Singular
-            }
-             */
+            string result = ClassWords(UnderscoreToPascalCase(name));
+
             return Singular(result.Replace(" ", ""), culture); // Singular
         }
 
-        public string ClassWords(string name, bool isLower, ref bool isUnderscore)
+        public string ClassWords(string name)
         {
             string result;
             string[] words;
@@ -1797,12 +1738,6 @@ namespace XCodeSmith
             {
                 name = name.Replace(expression, "");
             }
-            if (IgnoreUnderscore)
-            {
-                name = name.Replace("_", "");
-            }
-
-            isUnderscore = false;
 
             // Schema.Table => Table
             words = name.Split('.');
@@ -1811,57 +1746,24 @@ namespace XCodeSmith
                 name = words[1];
             }
 
-            if (UseCase)
-            {
-                //result = "{" + name + "} " + " [" + StringSplitPascalCase(name) + "]" + " [" + StringSplitPascalCase("UsersInRoles") + "]";
+            words = StringSplitPascalCase(name).Split(' ');
 
-                if (name.IndexOf('_') >= 0)
+            result = "";
+            int index = 0;
+            foreach (string word in words)
+            {
+                // Case Sensitive
+                //if (Array.IndexOf(Acronyms, word) >= 0) // Is an Acronym
+                // Case Insensitive
+                if (Array.FindIndex(Acronyms, x => x.Equals(word, StringComparison.InvariantCultureIgnoreCase)) >= 0) // Is an Acronym
                 {
-                    isUnderscore = true;
-                    words = name.Split('_');
+                    result += (!IsNullOrEmpty(result) ? " " : "") + word;
                 }
                 else
                 {
-                    words = StringSplitPascalCase(name).Split(' ');
+                    result += (!IsNullOrEmpty(result) ? " " : "") + StringToUpperFirstLetter(word.ToLower());
                 }
-
-                result = "";
-                int index = 0;
-                foreach (string word in words)
-                {
-                    if (isLower && index == 0)
-                    {
-                        result += (!IsNullOrEmpty(result) ? " " : "") + word.ToLower();
-                    }
-                    else if (Array.IndexOf(Acronyms, word) >= 0) // Is an Acronym
-                    {
-                        result += (!IsNullOrEmpty(result) ? " " : "") + word;
-                    }
-                    else
-                    {
-                        result += (!IsNullOrEmpty(result) ? " " : "") + StringToUpperFirstLetter(word.ToLower());
-                    }
-                    index++;
-                }
-            }
-            else
-            {
-                if (name.IndexOf('_') >= 0)
-                {
-                    isUnderscore = true;
-                    words = name.Split('_');
-                }
-                else
-                {
-                    words = StringSplitPascalCase(name.Replace("dbo.", "")).Split(' ');
-                }
-
-                if(isLower)
-                {
-                    words[0] = StringToLowerFirstLetter(words[0]);
-                }
-
-                result = string.Join(" ", words);
+                index++;
             }
 
             return result;
@@ -1871,52 +1773,24 @@ namespace XCodeSmith
 
         public string PropertyLabel(string name)
         {
-            return PropertyLabel(UnderscoreToPascalCase(name), false);
-        }
-
-        public string PropertyLabel(string name, bool isLower)
-        {
-            bool isUnderscore = false;
-            return PropertyWords(UnderscoreToPascalCase(name), isLower, ref isUnderscore);
+            return PropertyWords(UnderscoreToPascalCase(name));
         }
 
         public string PropertyName(string name)
         {
-            bool isLower = false;
-            bool isUnderscore = false;
-            string result = PropertyWords(UnderscoreToPascalCase(name), isLower, ref isUnderscore);
-            /*
-            if (isUnderscore)
-            {
-                return result.Replace(" ", "_");
-            }
-            else
-            {
-                return result.Replace(" ", "");
-            }
-             */
+            string result = PropertyWords(UnderscoreToPascalCase(name));
+
             return result.Replace(" ", "");
         }
 
         public string LocalName(string name)
         {
-            bool isLower = true;
-            bool isUnderscore = false;
-            string result = PropertyWords(UnderscoreToPascalCase(name), isLower, ref isUnderscore);
-            /*
-            if (isUnderscore)
-            {
-                return result.Replace(" ", "_");
-            }
-            else
-            {
-                return result.Replace(" ", "");
-            }
-             */
+            string result = PropertyWords(UnderscoreToPascalCase(name));
+
             return result.Replace(" ", "");
         }
 
-        public string PropertyWords(string name, bool isLower, ref bool isUnderscore)
+        public string PropertyWords(string name)
         {
             string result;
             string[] words;
@@ -1925,63 +1799,26 @@ namespace XCodeSmith
             {
                 name = name.Replace(expression, "");
             }
-            if (IgnoreUnderscore)
-            {
-                name = name.Replace("_", "");
-            }
 
-            isUnderscore = false;
+            words = StringSplitPascalCase(name).Split(' ');
 
-            if (UseCase)
+            result = "";
+            int index = 0;
+            foreach (string word in words)
             {
-                if (name.IndexOf('_') >= 0)
+                // Case Sensitive
+                //if (Array.IndexOf(Acronyms, word) >= 0) // Is an Acronym
+                // Case Insensitive
+                if (Array.FindIndex(Acronyms, x => x.Equals(word, StringComparison.InvariantCultureIgnoreCase)) >= 0) // Is an Acronym
                 {
-                    isUnderscore = true;
-                    words = name.Split('_');
+                    result += (!IsNullOrEmpty(result) ? " " : "") + word;
                 }
                 else
                 {
-                    words = StringSplitPascalCase(name).Split(' ');
+                    result += (!IsNullOrEmpty(result) ? " " : "") + StringToUpperFirstLetter(word.ToLower());
                 }
 
-                result = "";
-                int index = 0;
-                foreach (string word in words)
-                {
-                    if (isLower && index == 0)
-                    {
-                        result += (!IsNullOrEmpty(result) ? " " : "") + word.ToLower();
-                    }
-                    else if (Array.IndexOf(Acronyms, word) >= 0) // Is an Acronym
-                    {
-                        result += (!IsNullOrEmpty(result) ? " " : "") + word;
-                    }
-                    else
-                    {
-                        result += (!IsNullOrEmpty(result) ? " " : "") + StringToUpperFirstLetter(word.ToLower());
-                    }
-
-                    index++;
-                }
-            }
-            else
-            {
-                if (name.IndexOf('_') >= 0)
-                {
-                    isUnderscore = true;
-                    words = name.Split('_');
-                }
-                else
-                {
-                    words = StringSplitPascalCase(name.Replace("dbo.", "")).Split(' ');
-                }
-
-                if(isLower)
-                {
-                    words[0] = StringToLowerFirstLetter(words[0]);
-                }
-
-                result = string.Join(" ", words);
+                index++;
             }
 
             return result;
