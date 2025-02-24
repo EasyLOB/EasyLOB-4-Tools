@@ -593,7 +593,7 @@ namespace Generator
         {
             bool isLower = true;
             bool isUnderscore = false;
-            string result = PropertyWords(name, isLower, ref isUnderscore);
+            string result = PropertyWords(UnderscoreToPascalCase(name), isLower, ref isUnderscore);
             /*
             if (isUnderscore)
             {
