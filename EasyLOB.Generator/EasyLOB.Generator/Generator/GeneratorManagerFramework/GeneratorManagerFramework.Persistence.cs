@@ -275,7 +275,7 @@ namespace {Namespace}
             this.HasRequired(x => x.{pkClassName2}{x})");
                         }
 
-                        file.WriteLine($@"                .WithMany(x => x.{Plural(fkClassName, Culture)})
+                        file.WriteLine($@"                .WithMany(x => x.{Plural(fkClassName, Culture)}{x})
                 .HasForeignKey(x => {foreignKeys});");
                     }
 

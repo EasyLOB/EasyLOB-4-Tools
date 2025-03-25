@@ -138,7 +138,7 @@ foreach (TableKeySchema primaryKey in SourceTable.PrimaryKeys) {
             if (associations123.ContainsKey(fkClassName)) {
                 x = (++associations123[fkClassName]).ToString();
             } %>
-                    <div id="Group_<%= className %>_<%= propertyName %>" class="@profile.EditCSSGroupFor("<%= fkClassName2 %>LookupText")">
+                    <div id="Group_<%= className %>_<%= propertyName %>" class="@profile.EditCSSGroupFor("<%= fkClassName2 %><%= x %>LookupText")">
                         @Html.LabelFor(model => model.<%= className %>.<%= propertyName %>, new { @class = profile.EditCSSLabelFor("<%= propertyName %>") })
                         @Html.EditorFor(model => model.<%= className %>.<%= propertyName %>, new { htmlAttributes = new { @class = profile.EditCSSEditorFor("<%= propertyName %>"), id = "<%= className %>_<%= propertyName %>" } })
                         @{

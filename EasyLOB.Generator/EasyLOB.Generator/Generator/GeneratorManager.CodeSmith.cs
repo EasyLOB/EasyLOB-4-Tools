@@ -415,12 +415,12 @@ namespace Generator
 
         public string ObjectName(string name, Cultures culture)
         {
-            string result = ClassWords(UnderscoreToPascalCase(name));
+            string result = ClassWords(UnderscoreToPascalCase(name), true);
 
             return Singular(result.Replace(" ", ""), culture); // Singular
         }
 
-        public string ClassWords(string name)
+        public string ClassWords(string name, bool isLower = false)
         {
             string result;
             string[] words;
@@ -443,10 +443,14 @@ namespace Generator
             int index = 0;
             foreach (string word in words)
             {
+                if (index == 0 && isLower)
+                {
+                    result += (!IsNullOrEmpty(result) ? " " : "") + word.ToLower();
+                }
                 // Case Sensitive
                 //if (Array.IndexOf(Acronyms, word) >= 0) // Is an Acronym
                 // Case Insensitive
-                if (Array.FindIndex(Acronyms, x => x.Equals(word, StringComparison.InvariantCultureIgnoreCase)) >= 0) // Is an Acronym
+                else if (Array.FindIndex(Acronyms, x => x.Equals(word, StringComparison.InvariantCultureIgnoreCase)) >= 0) // Is an Acronym
                 {
                     result += (!IsNullOrEmpty(result) ? " " : "") + word;
                 }

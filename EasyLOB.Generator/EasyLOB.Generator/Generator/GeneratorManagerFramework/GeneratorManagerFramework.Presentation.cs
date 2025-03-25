@@ -669,14 +669,16 @@ namespace {Application}.Data
                     }
                     if (isDataAnnotations)
                     {
-                        if (IsDate(column.DataType))
+                        if (IsDate(column.DataType) || IsDateTime(column.DataType))
                         {
                             file.WriteLine($@"        //[DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = ""{{0:d}}"", ApplyFormatInEditMode = true)]");
                         } else if (IsDateTime(column.DataType)) {
+                            // DatabaseSchemaReader does not know the difference between "date" and "datetime"
                             file.WriteLine($@"        //[DataType(DataType.DateTime)]
         [DisplayFormat(DataFormatString = ""{{0:G}}"", ApplyFormatInEditMode = true)]");
-                        } else if (IsDecimal(column.DataType) || IsFloat(column.DataType)) {
+                        }
+                        else if (IsDecimal(column.DataType) || IsFloat(column.DataType)) {
                             file.WriteLine($@"        [DisplayFormat(DataFormatString = ""{{0:f2}}"", ApplyFormatInEditMode = true)]");
                         } else if (IsInteger(column.DataType)) {
                             file.WriteLine($@"        [DisplayFormat(DataFormatString = ""{{0:d}}"", ApplyFormatInEditMode = true)]");
@@ -1205,7 +1207,7 @@ namespace {Application}.Data
                         file.WriteLine($@"                .Type(""boolean"")
                 .EditType(EditingType.BooleanEdit)");
                     }
-                    else if (IsDate(column.DataType))
+                    else if (IsDate(column.DataType) || IsTime(column.DataType) || IsDateTime(column.DataType))
                     {
                         file.WriteLine($@"                .Type(""date"")
                 .EditType(EditingType.Datepicker)
@@ -1213,12 +1215,14 @@ namespace {Application}.Data
                     }
                     else if (IsTime(column.DataType))
                     {
+                        // DatabaseSchemaReader does not know the difference between "date" and "datetime"
                         file.WriteLine($@"                .Type(""datetime"")
                 .EditType(EditingType.DateTimePicker)
                 .Format(SyncfusionPatternResources.GridFormat_Time)");
                     }
                     else if (IsDateTime(column.DataType))
                     {
+                        // DatabaseSchemaReader does not know the difference between "date" and "datetime"
                         file.WriteLine($@"                .Type(""datetime"")
                 .EditType(EditingType.DateTimePicker)
                 .Format(SyncfusionPatternResources.GridFormat_DateTime)");
@@ -1642,7 +1646,7 @@ namespace {Application}.Data
                         file.WriteLine($@"                .Type(""boolean"")
                 .EditType(""booleanEdit"")");
                     }
-                    else if (IsDate(column.DataType))
+                    else if (IsDate(column.DataType) || IsTime(column.DataType) || IsDateTime(column.DataType))
                     {
                         file.WriteLine($@"                .Type(""date"")
                 .EditType(""datePickerEdit"")
@@ -1650,12 +1654,14 @@ namespace {Application}.Data
                     }
                     else if (IsTime(column.DataType))
                     {
+                        // DatabaseSchemaReader does not know the difference between "date" and "datetime"
                         file.WriteLine($@"                .Type(""datetime"")
                 .EditType(""dateTimePickerEdit"")
                 .Format(SyncfusionPatternResources.GridFormat_Time)");
                     }
                     else if (IsDateTime(column.DataType))
                     {
+                        // DatabaseSchemaReader does not know the difference between "date" and "datetime"
                         file.WriteLine($@"                .Type(""datetime"")
                 .EditType(""dateTimePickerEdit"")
                 .Format(SyncfusionPatternResources.GridFormat_DateTime)");
@@ -2037,7 +2043,7 @@ namespace {Application}.Data
                         }
 
                         file.WriteLine($@"
-                <div id=""Group_{className}_{propertyName}"" class=""@profile.EditCSSGroupFor(""{fkClassName2}LookupText"")"">
+                <div id=""Group_{className}_{propertyName}"" class=""@profile.EditCSSGroupFor(""{fkClassName2}{x}LookupText"")"">
                     @Html.LabelFor(model => model.{className}.{propertyName}, new {{ @class = profile.EditCSSLabelFor(""{propertyName}"") }})
                     @Html.EditorFor(model => model.{className}.{propertyName}, new {{ htmlAttributes = new {{ @class = profile.EditCSSEditorFor(""{propertyName}""), id = ""{className}_{propertyName}"" }} }})
                     @{{
@@ -2049,7 +2055,7 @@ namespace {Application}.Data
                         }});
                     }}");
                     }
-                    else if (IsDate(column.DataType))
+                    else if (IsDate(column.DataType) || IsDateTime(column.DataType))
                     {
                         file.WriteLine($@"
                 <div id=""Group_{className}_{propertyName}"" class=""@profile.EditCSSGroupFor(""{propertyName}"")"">
@@ -2059,6 +2065,7 @@ namespace {Application}.Data
                     }
                     else if (IsDateTime(column.DataType))
                     {
+                        // DatabaseSchemaReader does not know the difference between "date" and "datetime"
                         file.WriteLine($@"
                 <div id=""Group_{className}_{propertyName}"" class=""@profile.EditCSSGroupFor(""{propertyName}"")"">
                     @Html.LabelFor(model => model.{className}.{propertyName}, new {{ @class = profile.EditCSSLabelFor(""{propertyName}"") }})
@@ -2405,7 +2412,7 @@ namespace {Application}.Data
                             }});
                         }}");
                     }
-                    else if (IsDate(column.DataType))
+                    else if (IsDate(column.DataType) || IsDateTime(column.DataType))
                     {
                         file.WriteLine($@"
                     <div id=""Group_{className}_{propertyName}"" class=""@profile.EditCSSGroupFor(""{propertyName}"")"">
@@ -2422,6 +2429,7 @@ namespace {Application}.Data
                     }
                     else if (IsDateTime(column.DataType))
                     {
+                        // DatabaseSchemaReader does not know the difference between "date" and "datetime"
                         file.WriteLine($@"
                     <div id=""Group_{className}_{propertyName}"" class=""@profile.EditCSSGroupFor(""{propertyName}"")"">
                         @Html.LabelFor(model => model.{className}.{propertyName}, new {{ @class = profile.EditCSSLabelFor(""{propertyName}"") }})
@@ -2760,7 +2768,7 @@ namespace {Application}.Data
                         file.WriteLine($@"                            .Type(""boolean"")
                             .EditType(EditingType.BooleanEdit)");
                     }
-                    else if (IsDate(column.DataType))
+                    else if (IsDate(column.DataType) || IsTime(column.DataType) || IsDateTime(column.DataType))
                     {
                         file.WriteLine($@"                            .Type(""date"")
                             .EditType(EditingType.Datepicker)
@@ -2768,12 +2776,14 @@ namespace {Application}.Data
                     }
                     else if (IsTime(column.DataType))
                     {
+                        // DatabaseSchemaReader does not know the difference between "date" and "datetime"
                         file.WriteLine($@"                            .Type(""datetime"")
                             .EditType(EditingType.DateTimePicker)
                             .Format(SyncfusionPatternResources.GridFormat_Time)");
                     }
                     else if (IsDateTime(column.DataType))
                     {
+                        // DatabaseSchemaReader does not know the difference between "date" and "datetime"
                         file.WriteLine($@"                            .Type(""datetime"")
                             .EditType(EditingType.DateTimePicker)
                             .Format(SyncfusionPatternResources.GridFormat_DateTime)");
@@ -3114,7 +3124,7 @@ namespace {Application}.Data
                         file.WriteLine($@"                            .Type(""boolean"")
                             .EditType(""booleanEdit"")");
                     }
-                    else if (IsDate(column.DataType))
+                    else if (IsDate(column.DataType) || IsTime(column.DataType) || IsDateTime(column.DataType))
                     {
                         file.WriteLine($@"                            .Type(""date"")
                             .EditType(""datePickerEdit"")
